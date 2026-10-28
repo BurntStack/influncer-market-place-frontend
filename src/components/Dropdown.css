@@ -1,0 +1,77 @@
+.dd {
+  position: relative;
+  display: inline-block;
+}
+.dd__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  cursor: pointer;
+}
+/* When no buttonClassName is supplied, give a sensible default chip look. */
+.dd__trigger:not([class*=' ']) {
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+}
+.dd__caret {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.85;
+  transition: transform 0.15s ease;
+}
+.dd.is-open .dd__caret {
+  transform: rotate(180deg);
+}
+
+/* Menu renders in a portal; position is set inline (fixed). */
+.dd__menu {
+  z-index: 1000;
+  min-width: 180px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  animation: ddIn 0.14s ease;
+}
+@keyframes ddIn {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+.dd__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.dd__item:hover {
+  background: var(--surface-alt);
+}
+.dd__item.is-active {
+  color: var(--pink-600);
+  font-weight: 600;
+}
+.dd__item.is-danger {
+  color: #d23b3b;
+}
+.dd__check {
+  color: var(--pink-600);
+  font-size: 12px;
+}

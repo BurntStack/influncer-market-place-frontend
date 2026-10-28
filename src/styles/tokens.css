@@ -1,0 +1,49 @@
+/* Design tokens — derived from the Figma "brand-side" file */
+:root {
+  /* Brand / accent */
+  --pink: #ff2e88;
+  --pink-600: #e61f76;
+  --pink-glow: rgba(255, 46, 136, 0.45);
+
+  /* Logo mark (the square left of the wordmark) — green, site-wide */
+  --brand-mark: #22c55e;
+  --brand-mark-glow: rgba(34, 197, 94, 0.45);
+
+  /* Neutrals (dark) */
+  --ink-900: #141414;
+  --ink-800: #1c1c1c;
+  --ink-700: #262626;
+  --ink-600: #333333;
+
+  /* Neutrals (light) */
+  --bg: #f4f4f5;
+  --surface: #ffffff;
+  --surface-alt: #fafafa;
+  --border: #e6e6e8;
+  --border-strong: #d9d9dd;
+
+  /* Text */
+  --text: #141414;
+  --text-muted: #6b6b70;
+  --text-faint: #9a9aa0;
+  --text-on-dark: #ffffff;
+  --text-on-dark-muted: #a9a9b0;
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.12);
+
+  /* Layout */
+  --maxw: 1200px;
+  --nav-h: 76px;
+
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}

@@ -1,0 +1,284 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 16px 24px;
+  background: linear-gradient(var(--bg), rgba(244, 244, 245, 0));
+}
+
+.nav__bar {
+  position: relative;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 14px 0 24px;
+  background: var(--ink-900);
+  color: var(--text-on-dark);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-md);
+}
+
+.nav__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.nav__logo-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--brand-mark);
+  box-shadow: 0 0 14px var(--brand-mark-glow);
+}
+
+/* Links / triggers */
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline: auto;
+}
+.nav__item {
+  position: relative;
+}
+.nav__trigger,
+.nav__plain {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-on-dark-muted);
+  border-radius: var(--r-md);
+  transition: color 0.15s ease;
+}
+.nav__trigger:hover,
+.nav__plain:hover,
+.nav__item.is-active .nav__trigger {
+  color: #fff;
+}
+.nav__item.is-active .nav__trigger {
+  color: var(--pink);
+}
+.nav__caret {
+  font-size: 15px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+.nav__item.is-active .nav__caret {
+  transform: rotate(180deg);
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav__burger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-700);
+  border: none;
+  border-radius: var(--r-pill);
+}
+.nav__burger span {
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+}
+
+
+/* ---------- Desktop mega-menu panel ---------- */
+.nav__panel {
+  position: absolute;
+  top: calc(16px + var(--nav-h) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  animation: navPanelIn 0.16s ease;
+}
+/* Invisible bridge covering the gap between the bar and the panel so the
+   cursor can travel from a trigger into the panel without closing it. */
+.nav__panel::before {
+  content: '';
+  position: absolute;
+  top: -18px;
+  left: 0;
+  right: 0;
+  height: 18px;
+}
+@keyframes navPanelIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+}
+.nav__panel-cols {
+  display: grid;
+  gap: 8px 28px;
+}
+.nav__panel-col {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+/* Submenu accordion (mobile only) */
+.nav__submenu-mobile {
+  display: none;
+}
+
+/* Menu item (shared desktop + mobile) */
+.menu__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-md);
+  transition: background 0.15s ease;
+}
+.menu__item:hover {
+  background: var(--surface-alt);
+}
+.menu__icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+.menu__icon--pink { background: #ffe0ee; }
+.menu__icon--blue { background: #ddeafe; }
+.menu__icon--purple { background: #e7e2fb; }
+.menu__icon--yellow { background: #fbf0c9; }
+.menu__icon--green { background: #d8f3e3; }
+.menu__icon--orange { background: #fde6cf; }
+
+.menu__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.menu__desc {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* Mobile CTA buttons (hidden on desktop) */
+.nav__mobile-cta {
+  display: none;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 860px) {
+  .nav__login {
+    display: none;
+  }
+  .nav__burger {
+    display: inline-flex;
+  }
+
+  .nav__links {
+    position: absolute;
+    top: calc(var(--nav-h) + 24px);
+    left: 24px;
+    right: 24px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    display: none;
+    max-height: 78vh;
+    overflow-y: auto;
+  }
+  .nav__links.is-open {
+    display: flex;
+  }
+
+  .nav__item {
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+  }
+  .nav__trigger {
+    width: 100%;
+    justify-content: space-between;
+    color: var(--text);
+    font-weight: 600;
+    padding: 16px 4px;
+  }
+  .nav__item.is-active .nav__trigger {
+    color: var(--pink);
+  }
+  .nav__plain {
+    width: 100%;
+    color: var(--text);
+    font-weight: 600;
+    padding: 16px 4px;
+  }
+
+  .nav__panel {
+    display: none; /* use inline accordion on mobile */
+  }
+  .nav__submenu-mobile {
+    display: grid;
+    gap: 2px;
+    padding: 2px 0 10px;
+  }
+  .nav__submenu-mobile .menu__item {
+    padding: 10px 4px;
+  }
+  .nav__submenu-mobile .menu__icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav__mobile-cta {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    padding-top: 14px;
+  }
+  .nav__mobile-cta .btn {
+    width: 100%;
+  }
+}

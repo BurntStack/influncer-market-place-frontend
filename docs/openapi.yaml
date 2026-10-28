@@ -1,0 +1,770 @@
+openapi: 3.0.3
+info:
+  title: Creator Marketplace API (Brand side)
+  version: 1.0.0
+  description: >
+    REST contract for the React brand-side frontend (marketing site, auth,
+    creator discovery/profile, cart, campaigns, orders/escrow, dashboard).
+    Money values are INR integers (8000 = ₹8,000). All list endpoints return a
+    pagination envelope. See docs/API.md for prose.
+
+servers:
+  - url: /api/v1
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Creators
+  - name: Profile
+  - name: Cart
+  - name: Campaigns
+  - name: Orders
+  - name: Dashboard
+  - name: Lists
+  - name: Deliverables
+  - name: Reporting
+
+paths:
+  # ---------------- Auth ----------------
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Register a brand account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, companyName]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                companyName: { type: string }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+        "400": { $ref: "#/components/responses/Error" }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+        "401": { $ref: "#/components/responses/Error" }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Invalidate the current session
+      responses:
+        "204": { description: No Content }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current authenticated user
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { user: { $ref: "#/components/schemas/User" } } } } } }
+        "401": { $ref: "#/components/responses/Error" }
+
+  /auth/oauth/google:
+    post:
+      tags: [Auth]
+      summary: Google sign-in
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [idToken], properties: { idToken: { type: string } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+
+  /auth/oauth/apple:
+    post:
+      tags: [Auth]
+      summary: Apple sign-in
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [idToken], properties: { idToken: { type: string } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
+
+  # ---------------- Creators: discovery ----------------
+  /creators:
+    get:
+      tags: [Creators]
+      summary: Search / list creators (paginated)
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: platform, in: query, schema: { type: string } }
+        - { name: contentType, in: query, schema: { type: string } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: priceMin, in: query, schema: { type: integer } }
+        - { name: priceMax, in: query, schema: { type: integer } }
+        - { name: followersMin, in: query, schema: { type: integer } }
+        - { name: followersMax, in: query, schema: { type: integer } }
+        - { name: gender, in: query, schema: { type: string } }
+        - { name: age, in: query, schema: { type: string } }
+        - { name: language, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [recommended, price_asc, price_desc, followers, trending] } }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/pageSize" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageMeta"
+                  - type: object
+                    properties:
+                      results: { type: array, items: { $ref: "#/components/schemas/Creator" } }
+
+  /creators/suggestions:
+    get:
+      tags: [Creators]
+      summary: Hero suggestion chips
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    label: { type: string }
+                    query: { type: object, additionalProperties: true }
+
+  /creators/filters:
+    get:
+      tags: [Creators]
+      summary: Available filter options for the dropdowns
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  platforms: { type: array, items: { type: string } }
+                  cities: { type: array, items: { type: string } }
+                  categories: { type: array, items: { type: string } }
+                  languages: { type: array, items: { type: string } }
+                  priceBuckets:
+                    type: array
+                    items: { type: object, properties: { label: { type: string }, min: { type: integer }, max: { type: integer } } }
+
+  # ---------------- Creator profile (login-gated) ----------------
+  /creators/{id}:
+    get:
+      tags: [Profile]
+      summary: Full creator profile
+      parameters: [{ $ref: "#/components/parameters/creatorId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CreatorFull" } } } }
+        "401": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+
+  /creators/{id}/packages:
+    get:
+      tags: [Profile]
+      summary: Bookable packages
+      parameters: [{ $ref: "#/components/parameters/creatorId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Package" } } } } }
+
+  /creators/{id}/reviews:
+    get:
+      tags: [Profile]
+      summary: Creator reviews
+      parameters:
+        - { $ref: "#/components/parameters/creatorId" }
+        - { $ref: "#/components/parameters/page" }
+        - { $ref: "#/components/parameters/pageSize" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageMeta"
+                  - type: object
+                    properties:
+                      rating: { type: number }
+                      results: { type: array, items: { $ref: "#/components/schemas/Review" } }
+
+  /creators/{id}/similar:
+    get:
+      tags: [Profile]
+      summary: Similar creators
+      parameters: [{ $ref: "#/components/parameters/creatorId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Creator" } } } } }
+
+  /creators/{id}/save:
+    post:
+      tags: [Profile]
+      summary: Save creator to shortlist
+      parameters: [{ $ref: "#/components/parameters/creatorId" }]
+      responses: { "204": { description: Saved } }
+    delete:
+      tags: [Profile]
+      summary: Remove creator from shortlist
+      parameters: [{ $ref: "#/components/parameters/creatorId" }]
+      responses: { "204": { description: Removed } }
+
+  # ---------------- Cart & offers ----------------
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Current cart
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cart" } } } }
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add a package to the cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creatorId, packageId, quantity]
+              properties:
+                creatorId: { type: string }
+                packageId: { type: string }
+                quantity: { type: integer, minimum: 1 }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cart" } } } }
+
+  /cart/items/{itemId}:
+    patch:
+      tags: [Cart]
+      summary: Change quantity
+      parameters: [{ name: itemId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [quantity], properties: { quantity: { type: integer, minimum: 1 } } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Cart" } } } }
+    delete:
+      tags: [Cart]
+      summary: Remove an item
+      parameters: [{ name: itemId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Removed } }
+
+  /offers:
+    post:
+      tags: [Cart]
+      summary: Send a custom offer to a creator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [creatorId, deliverable, budget]
+              properties:
+                creatorId: { type: string }
+                deliverable: { type: string }
+                budget: { type: integer }
+                message: { type: string }
+                deadline: { type: string, format: date }
+      responses:
+        "201": { description: Created }
+
+  # ---------------- Campaigns / Jobs ----------------
+  /campaigns:
+    get:
+      tags: [Campaigns]
+      summary: Brand's jobs (+ tab counts)
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [open, progress, completed, drafts] } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Campaign" } } } } }
+    post:
+      tags: [Campaigns]
+      summary: Post a job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, platform, deliverables, budgetMin, budgetMax, applyBy]
+              properties:
+                title: { type: string }
+                platform: { type: string }
+                deliverables: { type: string }
+                budgetMin: { type: integer }
+                budgetMax: { type: integer }
+                applyBy: { type: string, format: date }
+                brief: { type: string }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+
+  /campaigns/{id}:
+    get:
+      tags: [Campaigns]
+      summary: One campaign
+      parameters: [{ $ref: "#/components/parameters/campaignId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+    patch:
+      tags: [Campaigns]
+      summary: Edit a job
+      parameters: [{ $ref: "#/components/parameters/campaignId" }]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Campaign" } } } }
+    delete:
+      tags: [Campaigns]
+      summary: Delete a draft/job
+      parameters: [{ $ref: "#/components/parameters/campaignId" }]
+      responses: { "204": { description: Deleted } }
+
+  /campaigns/{id}/bids:
+    get:
+      tags: [Campaigns]
+      summary: Bids on a campaign
+      parameters: [{ $ref: "#/components/parameters/campaignId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Bid" } } } } }
+
+  /campaigns/{id}/bids/{bidId}/select:
+    post:
+      tags: [Campaigns]
+      summary: Pick a creator (creates an escrow order)
+      parameters:
+        - { $ref: "#/components/parameters/campaignId" }
+        - { name: bidId, in: path, required: true, schema: { type: string } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { type: object, properties: { order: { $ref: "#/components/schemas/Order" } } } } } }
+
+  # ---------------- Orders & escrow ----------------
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Brand's orders (+ stat cards)
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, completed, cancelled] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats: { type: array, items: { $ref: "#/components/schemas/Stat" } }
+                  results: { type: array, items: { $ref: "#/components/schemas/Order" } }
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: One order
+      parameters: [{ $ref: "#/components/parameters/orderId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Order" } } } }
+
+  /orders/{id}/pay:
+    post:
+      tags: [Orders]
+      summary: Fund escrow (returns payment-provider client token/intent)
+      parameters: [{ $ref: "#/components/parameters/orderId" }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: object, properties: { clientSecret: { type: string }, provider: { type: string } } } } } }
+
+  /orders/{id}/request-changes:
+    post:
+      tags: [Orders]
+      summary: Request changes on a submitted draft
+      parameters: [{ $ref: "#/components/parameters/orderId" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { note: { type: string } } } } } }
+      responses: { "200": { description: OK } }
+
+  /orders/{id}/approve:
+    post:
+      tags: [Orders]
+      summary: Approve & pay (release escrow)
+      parameters: [{ $ref: "#/components/parameters/orderId" }]
+      responses: { "200": { description: OK } }
+
+  # ---------------- Dashboard ----------------
+  /dashboard/summary:
+    get:
+      tags: [Dashboard]
+      summary: Dashboard home data
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  greetingName: { type: string }
+                  todos: { type: array, items: { $ref: "#/components/schemas/Todo" } }
+                  stats: { type: array, items: { $ref: "#/components/schemas/Stat" } }
+                  topCreators: { type: array, items: { $ref: "#/components/schemas/Creator" } }
+
+  /dashboard/todos/{id}:
+    patch:
+      tags: [Dashboard]
+      summary: Tick an onboarding task
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { done: { type: boolean } } } } } }
+      responses: { "200": { description: OK } }
+
+  # ---------------- Lists ----------------
+  /lists:
+    get:
+      tags: [Lists]
+      summary: Brand's shortlists
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ListSummary" } } } } }
+    post:
+      tags: [Lists]
+      summary: Create a list
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string } } } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/ListSummary" } } } } }
+
+  /lists/{id}:
+    get:
+      tags: [Lists]
+      summary: List detail + creators
+      parameters: [{ $ref: "#/components/parameters/listId" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ListSummary"
+                  - type: object
+                    properties:
+                      creators: { type: array, items: { $ref: "#/components/schemas/Creator" } }
+    patch:
+      tags: [Lists]
+      summary: Rename a list
+      parameters: [{ $ref: "#/components/parameters/listId" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string } } } } } }
+      responses: { "200": { description: OK } }
+    delete:
+      tags: [Lists]
+      summary: Delete a list
+      parameters: [{ $ref: "#/components/parameters/listId" }]
+      responses: { "204": { description: Deleted } }
+
+  /lists/{id}/duplicate:
+    post:
+      tags: [Lists]
+      summary: Duplicate a list
+      parameters: [{ $ref: "#/components/parameters/listId" }]
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/ListSummary" } } } } }
+
+  /lists/{id}/creators:
+    post:
+      tags: [Lists]
+      summary: Add a creator to a list
+      parameters: [{ $ref: "#/components/parameters/listId" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [creatorId], properties: { creatorId: { type: string } } } } } }
+      responses: { "204": { description: Added } }
+
+  /lists/{id}/creators/{creatorId}:
+    delete:
+      tags: [Lists]
+      summary: Remove a creator from a list
+      parameters:
+        - { $ref: "#/components/parameters/listId" }
+        - { name: creatorId, in: path, required: true, schema: { type: string } }
+      responses: { "204": { description: Removed } }
+
+  # ---------------- Deliverables ----------------
+  /deliverables:
+    get:
+      tags: [Deliverables]
+      summary: Content library
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: jobId, in: query, schema: { type: string } }
+        - { name: platform, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Deliverable" } } } } }
+
+  /deliverables/{id}:
+    get:
+      tags: [Deliverables]
+      summary: One deliverable (preview/download URL)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Deliverable" } } } }
+
+  /deliverables/export:
+    get:
+      tags: [Deliverables]
+      summary: Download all (zip/CSV)
+      responses:
+        "200": { description: OK, content: { application/octet-stream: { schema: { type: string, format: binary } } } }
+
+  # ---------------- Reporting ----------------
+  /reporting:
+    get:
+      tags: [Reporting]
+      summary: Reporting data
+      parameters:
+        - { name: period, in: query, schema: { type: string, enum: [last_30_days, last_3_months, last_6_months, last_12_months, all_time] } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats: { type: array, items: { $ref: "#/components/schemas/Stat" } }
+                  viewsByMonth:
+                    type: array
+                    items: { type: object, properties: { month: { type: string }, instagram: { type: integer }, youtube: { type: integer } } }
+                  spendByPlatform:
+                    type: array
+                    items: { type: object, properties: { label: { type: string }, amount: { type: string }, pct: { type: integer } } }
+                  topCreators:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        creator: { $ref: "#/components/schemas/Creator" }
+                        posts: { type: integer }
+                        views: { type: string }
+                        engagement: { type: string }
+                        spend: { type: string }
+                        costPer1k: { type: string }
+
+  /reporting/export:
+    get:
+      tags: [Reporting]
+      summary: CSV export
+      parameters: [{ name: period, in: query, schema: { type: string } }]
+      responses:
+        "200": { description: OK, content: { text/csv: { schema: { type: string } } } }
+
+# ================= Components =================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    page: { name: page, in: query, schema: { type: integer, default: 1 } }
+    pageSize: { name: pageSize, in: query, schema: { type: integer, default: 12 } }
+    creatorId: { name: id, in: path, required: true, schema: { type: string }, description: Creator id (slug) }
+    campaignId: { name: id, in: path, required: true, schema: { type: string } }
+    orderId: { name: id, in: path, required: true, schema: { type: string } }
+    listId: { name: id, in: path, required: true, schema: { type: string } }
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+
+    PageMeta:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        companyName: { type: string }
+        role: { type: string, example: brand }
+
+    AuthResponse:
+      type: object
+      properties:
+        token: { type: string }
+        user: { $ref: "#/components/schemas/User" }
+
+    Creator:
+      type: object
+      properties:
+        id: { type: string, example: ananya-rao }
+        name: { type: string }
+        category: { type: string, example: "Beauty, Skincare" }
+        location: { type: string }
+        followers: { type: string, example: "48.2k", description: display string }
+        followerCount: { type: integer, example: 48200 }
+        platform: { type: string, example: Instagram }
+        rating: { type: number, example: 4.9 }
+        reviewCount: { type: integer }
+        priceFrom: { type: integer, description: INR }
+        deliverable: { type: string }
+        quotes: { type: array, items: { type: string } }
+        image: { type: string, format: uri }
+        topCreator: { type: boolean }
+
+    CreatorFull:
+      allOf:
+        - $ref: "#/components/schemas/Creator"
+        - type: object
+          properties:
+            bio: { type: string }
+            gallery: { type: array, items: { type: string, format: uri } }
+            badges: { type: array, items: { type: string } }
+            repliesWithin: { type: string }
+
+    Package:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        note: { type: string }
+        price: { type: integer }
+        platform: { type: string }
+
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        avatar: { type: string, format: uri }
+        stars: { type: integer, minimum: 1, maximum: 5 }
+        date: { type: string, format: date }
+        text: { type: string }
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              creator: { $ref: "#/components/schemas/Creator" }
+              package: { $ref: "#/components/schemas/Package" }
+              quantity: { type: integer }
+              lineTotal: { type: integer }
+        subtotal: { type: integer }
+
+    Campaign:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        status: { type: string, enum: [open_for_bids, in_progress, completed, draft] }
+        platform: { type: string }
+        deliverables: { type: string }
+        budgetMin: { type: integer }
+        budgetMax: { type: integer }
+        applyBy: { type: string, format: date }
+        bidCount: { type: integer }
+        proposalAvatars: { type: array, items: { type: string, format: uri } }
+
+    Bid:
+      type: object
+      properties:
+        id: { type: string }
+        creator:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+            note: { type: string }
+            avatar: { type: string, format: uri }
+        price: { type: integer }
+        status: { type: string }
+
+    Order:
+      type: object
+      properties:
+        id: { type: string, example: "#XX-1048" }
+        deliverable: { type: string }
+        creator: { $ref: "#/components/schemas/Creator" }
+        amount: { type: integer }
+        payment: { type: string, enum: ["Held in escrow", "Released"] }
+        due: { type: string }
+        status: { type: string, enum: [in_escrow, draft_submitted, changes_requested, in_progress, released, completed, cancelled] }
+
+    Deliverable:
+      type: object
+      properties:
+        id: { type: string }
+        content: { type: string }
+        type: { type: string, example: Instagram Reel }
+        creator: { $ref: "#/components/schemas/Creator" }
+        job: { type: string }
+        deliveredAt: { type: string, format: date }
+        status: { type: string, enum: [Approved, "Needs review", Live, "Revision asked"] }
+
+    ListSummary:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        count: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        covers: { type: array, items: { type: string, format: uri } }
+
+    Todo:
+      type: object
+      properties:
+        id: { type: string }
+        label: { type: string }
+        done: { type: boolean }
+
+    Stat:
+      type: object
+      properties:
+        label: { type: string }
+        value: { type: string }
+        sub: { type: string }

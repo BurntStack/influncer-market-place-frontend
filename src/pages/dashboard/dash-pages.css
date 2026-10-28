@@ -1,0 +1,301 @@
+/* Shared styles for all dashboard pages */
+
+.dpage {
+  max-width: 1040px;
+}
+.dpage__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.dpage__title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.dpage__sub {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.dpage__actions {
+  display: flex;
+  gap: 10px;
+  flex: none;
+}
+
+/* Stat cards */
+.dstats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.dstat {
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.dstat__label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.dstat__value {
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dstat__sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.dstat__sub.is-green {
+  color: #22aa66;
+}
+
+/* Section heading inside a page */
+.dsection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 36px 0 16px;
+}
+.dsection-head h2 {
+  font-size: 20px;
+  font-weight: 800;
+}
+.dsection-head p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.dsection-head a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Tabs with counts */
+.dtabrow {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.dtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 14px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.dtab.is-active {
+  color: var(--text);
+  font-weight: 700;
+  border-bottom-color: var(--ink-900);
+}
+.dtab__count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--ink-900);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.dtab:not(.is-active) .dtab__count {
+  background: var(--border-strong);
+  color: var(--text-muted);
+}
+
+/* Creator card grid */
+.dcreator-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+/* Generic card + table */
+.dcard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.dtable-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.dtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.dtable th {
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.dtable td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.dtable tr:last-child td {
+  border-bottom: none;
+}
+.dtable tr:hover td {
+  background: var(--surface-alt);
+}
+.dcell-creator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dcell-creator img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.dcell-media {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dcell-media img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.dcell-media strong {
+  display: block;
+  font-size: 14px;
+}
+.dcell-media span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Status pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill--green { background: rgba(34, 170, 102, 0.12); color: #1f9159; }
+.pill--yellow { background: rgba(230, 170, 20, 0.15); color: #b9820f; }
+.pill--blue { background: rgba(60, 120, 240, 0.12); color: #2f6bd6; }
+.pill--pink { background: rgba(255, 46, 136, 0.12); color: var(--pink-600); }
+.pill--gray { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
+.pill--dot::before { content: '●'; font-size: 8px; }
+
+/* Row action button */
+.dbtn-ghost {
+  padding: 7px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.dbtn-ghost:hover {
+  border-color: var(--text);
+}
+
+/* Budget range bar (jobs) */
+.dbudget {
+  position: relative;
+  height: 6px;
+  margin: 10px 0;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, #3b82f6, #6366f1);
+}
+.dbudget__tick {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--ink-900);
+  transform: translateX(-50%);
+}
+
+/* Avatar stack */
+.davatars {
+  display: inline-flex;
+}
+.davatars img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--surface);
+  margin-left: -8px;
+}
+.davatars img:first-child {
+  margin-left: 0;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .dstats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dcreator-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .dpage__head {
+    flex-direction: column;
+  }
+  .dpage__title {
+    font-size: 24px;
+  }
+  /* Tables scroll horizontally on small screens */
+  .dtable-wrap {
+    overflow-x: auto;
+  }
+  .dtable {
+    min-width: 640px;
+  }
+}
+@media (max-width: 520px) {
+  .dstats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dcreator-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

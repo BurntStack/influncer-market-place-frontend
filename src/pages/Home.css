@@ -1,0 +1,530 @@
+/* Home page only: recolor the pink accent to light green.
+   Overriding these variables cascades to everything inside .home
+   (buttons, feature bullets, hiring steps, final CTA, etc.) without
+   affecting the shared navbar/footer, which live outside .home. */
+.home {
+  --pink: #22c55e;
+  --pink-600: #16a34a;
+  --pink-glow: rgba(34, 197, 94, 0.4);
+}
+
+/* ---------- Hero: search + creator grid ---------- */
+.hero {
+  padding-block: 20px 72px;
+}
+.searchbar {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-md);
+}
+.searchbar__platform {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 16px;
+  padding-right: 14px;
+  border-right: 1px solid var(--border);
+}
+.searchbar__icon {
+  color: var(--pink);
+  font-size: 14px;
+}
+.searchbar__platform select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 10px 0;
+}
+.searchbar__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  padding: 0 8px;
+}
+.searchbar__input::placeholder {
+  color: var(--text-faint);
+}
+.searchbar__btn {
+  padding-inline: 26px;
+}
+
+.hero__chips {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.hero__chip {
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.hero__chip:hover {
+  border-color: var(--text);
+  color: var(--text);
+}
+.hero__grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* ---------- Journey: feature rows ---------- */
+.journey__head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 40px;
+}
+.journey__head h2 {
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.journey__head p {
+  margin-top: 12px;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.feature {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  padding-block: 40px;
+}
+.feature--rev .feature__text {
+  order: 2;
+}
+.feature__step {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pink-600);
+}
+.feature__text h3 {
+  margin-top: 12px;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+.feature__text p {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 440px;
+}
+.feature__link {
+  margin-top: 20px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.feature__link:hover {
+  color: var(--pink);
+}
+.feature__visual {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---- Preview cards (shared) ---- */
+.pcard {
+  width: 100%;
+  max-width: 440px;
+  padding: 26px;
+  background: linear-gradient(160deg, #fff, var(--surface-alt));
+}
+.pcard__inner {
+  padding: 20px;
+  background: var(--surface);
+}
+
+/* Shortlist card */
+.pcard__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.pcard__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 500;
+}
+.pcard__chip span {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.pcard__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.pcard__rows li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pcard__rows img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex: none;
+}
+.pcard__rowinfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pcard__rowinfo strong {
+  font-size: 14px;
+}
+.pcard__rowinfo span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pcard__rowprice {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Campaign card */
+.pcard__kicker {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.pcard__title {
+  margin-top: 4px;
+  font-size: 19px;
+  font-weight: 700;
+}
+.pcard__facts {
+  margin: 16px 0 0;
+}
+.pcard__facts > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+}
+.pcard__facts dt {
+  color: var(--text-muted);
+}
+.pcard__facts dd {
+  margin: 0;
+  font-weight: 700;
+}
+.pcard__proposals {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.pcard__proposals strong {
+  color: var(--text);
+}
+.pcard__avatars {
+  display: flex;
+  margin-left: auto;
+}
+.pcard__avatars img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  margin-left: -8px;
+}
+
+/* Approval card */
+.pcard__approve-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pcard__approve-head img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.pcard__draft {
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--pink-600);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pcard__escrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-alt);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.pcard__escrow strong {
+  color: var(--text);
+}
+.pcard__approve-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.pcard__approve-actions .btn {
+  flex: 1;
+}
+
+/* ---------- Logo cloud ---------- */
+.logos {
+  padding-block: 40px 20px;
+}
+.logos__label {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.logos__row {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.logos__item {
+  flex: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ---------- Swap Six Tools ---------- */
+.swap__title {
+  text-align: center;
+  font-size: clamp(28px, 3.6vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 44px;
+}
+.swap__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.swapcard {
+  padding: 28px;
+}
+.swapcard__before {
+  font-size: 14px;
+  color: var(--text-faint);
+}
+.swapcard__before s {
+  text-decoration-color: var(--text-faint);
+}
+.swapcard__value {
+  margin-top: 6px;
+  font-size: clamp(30px, 3.4vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.swapcard__label {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ---------- Testimonials ---------- */
+.testimonials {
+  background: var(--ink-900);
+  color: var(--text-on-dark);
+  border-radius: var(--r-xl);
+  margin-inline: 24px;
+}
+.testimonials__title {
+  text-align: center;
+  font-size: clamp(28px, 3.6vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 48px;
+}
+.testimonials__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.quote {
+  margin: 0;
+  padding: 26px;
+  background: var(--ink-800);
+  border: 1px solid var(--ink-700);
+  border-radius: var(--r-lg);
+}
+.quote__stars {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.quote blockquote {
+  margin: 16px 0 22px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.quote figcaption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.quote figcaption > img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.quote figcaption > span {
+  display: flex;
+  flex-direction: column;
+}
+.quote figcaption strong {
+  font-size: 14px;
+}
+.quote figcaption > span > span {
+  font-size: 13px;
+  color: var(--text-on-dark-muted);
+}
+
+/* ---------- Final CTA (Figma 23:597) ---------- */
+.finalcta__box {
+  padding: 72px 24px;
+  border-radius: var(--r-xl);
+  background: var(--ink-900);
+  color: var(--text-on-dark);
+  text-align: center;
+}
+.finalcta__box h2 {
+  font-size: clamp(30px, 4.4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+.finalcta__box p {
+  margin-top: 16px;
+  color: var(--text-on-dark-muted);
+  font-size: 17px;
+}
+.finalcta__actions {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+  .hero__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 920px) {
+  .feature {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .feature--rev .feature__text {
+    order: 0;
+  }
+  .journey__head {
+    text-align: left;
+    margin-inline: 0;
+  }
+  .swap__grid,
+  .testimonials__grid {
+    grid-template-columns: 1fr;
+  }
+  .logos__row {
+    justify-content: center;
+    gap: 28px 40px;
+  }
+  .logos__item {
+    flex: 0 0 auto;
+  }
+}
+@media (max-width: 720px) {
+  .searchbar {
+    flex-direction: column;
+    border-radius: var(--r-lg);
+  }
+  .searchbar__platform {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+  }
+  .searchbar__btn {
+    padding-block: 12px;
+  }
+}
+@media (max-width: 520px) {
+  /* Keep a 2-up creator grid on phones, matching the mobile design */
+  .hero__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .pcard {
+    padding: 16px;
+  }
+  .pcard__inner {
+    padding: 16px;
+  }
+}

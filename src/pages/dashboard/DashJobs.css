@@ -1,0 +1,123 @@
+.jobs__list {
+  display: grid;
+  gap: 16px;
+}
+.jobcard-row {
+  padding: 22px 24px;
+}
+.jobcard-row__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.jobcard-row__top h3 {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.jobcard-row__meta {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.jobcard-row__bids,
+.jobcard-row__hired {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.jobcard-row__hired img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.jobcard-row__budget {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 18px 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.jobcard-row__budget .dbudget {
+  flex: 1;
+  margin: 0;
+}
+
+.jobcard-row__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.jobcard-row__note {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.jobcard-row__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.jobs__completed {
+  margin-top: 16px;
+  padding: 22px 24px;
+}
+.jobs__completed h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.jobs__completed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.jobs__completed-row img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.jobs__completed-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.jobs__completed-info strong {
+  font-size: 14px;
+}
+.jobs__completed-info span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.jobs__completed-amount {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .jobcard-row__foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .jobcard-row__actions {
+    width: 100%;
+  }
+  .jobcard-row__actions .btn,
+  .jobcard-row__actions .dbtn-ghost {
+    flex: 1;
+  }
+}

@@ -1,0 +1,338 @@
+.profile {
+  padding-block: 24px 72px;
+}
+
+.profile__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.profile__crumb {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.profile__crumb a {
+  color: var(--text);
+  font-weight: 600;
+}
+.profile__topactions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Gallery */
+.profile__gallery {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+  height: 420px;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.profile__gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile__gallery-side {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+}
+.profile__gallery-last {
+  position: relative;
+}
+.profile__showall {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 9px 14px;
+  border-radius: var(--r-pill);
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Body layout */
+.profile__body {
+  margin-top: 36px;
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 48px;
+  align-items: start;
+}
+
+.profile__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.profile__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--pink);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+}
+.profile__header h1 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.profile__sub {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.profile__sub .dot {
+  color: var(--text-faint);
+}
+
+.profile__badges {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.badge {
+  padding: 7px 14px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.badge--pink {
+  background: rgba(255, 46, 136, 0.1);
+  border-color: rgba(255, 46, 136, 0.25);
+  color: var(--pink-600);
+}
+
+.profile__bio {
+  margin-top: 24px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  max-width: 640px;
+}
+
+.profile__section {
+  margin-top: 44px;
+  padding-top: 36px;
+  border-top: 1px solid var(--border);
+}
+.profile__section h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+.profile__rating-inline {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+/* Packages */
+.pkg-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.pkg-tab {
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.pkg-tab.is-active {
+  background: var(--ink-900);
+  color: #fff;
+  border-color: var(--ink-900);
+}
+.pkg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.pkg {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.pkg__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+.pkg__note {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.pkg__price {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Reviews */
+.reviews {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.review {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.review__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.review__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ink-700);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.review__meta {
+  font-size: 12px;
+  color: var(--pink-600);
+}
+.review p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* Booking card */
+.profile__aside {
+  position: sticky;
+  top: calc(var(--nav-h) + 40px);
+}
+.booking {
+  padding: 24px;
+}
+.booking__price {
+  font-size: 26px;
+  font-weight: 800;
+}
+.booking__price span {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.booking__label {
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.booking__select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--surface);
+}
+.booking__qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.booking__stepper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-pill);
+}
+.booking__stepper button {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text);
+}
+.booking__cta {
+  width: 100%;
+  margin-top: 14px;
+}
+.booking__note {
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+/* Similar */
+.profile__similar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .profile__body {
+    grid-template-columns: 1fr;
+  }
+  .profile__aside {
+    position: static;
+  }
+  .reviews {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .profile__gallery {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .profile__gallery-side {
+    grid-template-rows: none;
+    grid-template-columns: 1fr 1fr;
+  }
+  .profile__similar {
+    grid-template-columns: 1fr;
+  }
+}
