@@ -5,8 +5,13 @@ import {
   getCreatorPackages,
   getCreatorReviews,
   getSimilarCreators,
+  saveCreator,
+  unsaveCreator,
+  addCartItem,
+  createOffer,
 } from '../api/creators.js'
 import CreatorCard from '../components/CreatorCard.jsx'
+import { useFavorites, toggleFavorite } from '../lib/favorites.js'
 import './CreatorProfile.css'
 
 const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
@@ -28,6 +33,13 @@ export default function CreatorProfile() {
   const [similar, setSimilar] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const saved = useFavorites().some((item) => item.id === id)
+  const [activePackageTab, setActivePackageTab] = useState('All')
+  const [selectedPackage, setSelectedPackage] = useState(null)
+  const [quantity, setQuantity] = useState(1)
+  const [actionMessage, setActionMessage] = useState('')
+  const [shareMsg, setShareMsg] = useState('')
+  const [galleryOpen, setGalleryOpen] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -55,6 +67,41 @@ export default function CreatorProfile() {
       active = false
     }
   }, [id])
+
+  const toggleSaved = async () => {
+    if (creator) toggleFavorite({ ...creator, id })
+  }
+
+  const share = async () => {
+    const url = window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: creator?.name, text: `Check out ${creator?.name}`, url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setShareMsg('Link copied')
+      setTimeout(() => setShareMsg(''), 2000)
+    } catch {
+      /* user dismissed the share sheet, or clipboard was blocked */
+    }
+  }
+
+  const addToCart = async () => {
+    const pkg = selectedPackage || packages[0]
+    if (!pkg?.id) { setActionMessage('This creator has no bookable package yet.'); return }
+    try { await addCartItem({ creatorId: id, packageId: pkg.id, quantity }); setActionMessage('Added to cart.') }
+    catch (err) { setActionMessage(err?.message || 'Could not add this package to cart.') }
+  }
+
+  const sendOffer = async () => {
+    const deliverable = window.prompt('What would you like the creator to deliver?', creator.deliverable || '')
+    if (!deliverable) return
+    const budget = Number(window.prompt('Budget in INR', String(creator.priceFrom || '')))
+    if (!budget) return
+    try { await createOffer({ creatorId: id, deliverable, budget, message: '', deadline: '' }); setActionMessage('Custom offer sent.') }
+    catch (err) { setActionMessage(err?.message || 'Could not send the offer.') }
+  }
 
   if (loading) {
     return <div className="profile container"><p className="find__empty">Loading profile…</p></div>
@@ -85,8 +132,9 @@ export default function CreatorProfile() {
           <Link to="/creators">Creators</Link> / {creator.category} creator from {creator.location}
         </div>
         <div className="profile__topactions">
-          <button className="btn btn--outline btn--sm">↗ Share</button>
-          <button className="btn btn--outline btn--sm">♡ Save</button>
+          {shareMsg && <span className="profile__sharemsg">{shareMsg}</span>}
+          <button className="btn btn--outline btn--sm" onClick={share}>↗ Share</button>
+          <button className={`btn btn--outline btn--sm ${saved ? 'is-saved' : ''}`} onClick={toggleSaved}>{saved ? '♥ Saved' : '♡ Save'}</button>
         </div>
       </div>
 
@@ -99,7 +147,7 @@ export default function CreatorProfile() {
           <img src={gallery[1] || gallery[0]} alt="" />
           <div className="profile__gallery-last">
             <img src={gallery[2] || gallery[0]} alt="" />
-            <button className="profile__showall">▦ Show all photos</button>
+            <button className="profile__showall" onClick={() => setGalleryOpen(true)}>▦ Show all photos</button>
           </div>
         </div>
       </div>
@@ -138,13 +186,13 @@ export default function CreatorProfile() {
             <h2>Packages</h2>
             <div className="pkg-tabs">
               {['All', creator.platform, 'UGC'].map((t, i) => (
-                <button key={t} className={`pkg-tab ${i === 0 ? 'is-active' : ''}`}>
+                <button key={t} className={`pkg-tab ${activePackageTab === t ? 'is-active' : ''}`} onClick={() => setActivePackageTab(t)}>
                   {t}
                 </button>
               ))}
             </div>
             <ul className="pkg-list">
-              {packages.map((p) => (
+              {packages.filter((p) => activePackageTab === 'All' || !p.platform || p.platform === activePackageTab).map((p) => (
                 <li key={p.id || p.title} className="pkg">
                   <div>
                     <div className="pkg__title">{p.title}</div>
@@ -190,7 +238,8 @@ export default function CreatorProfile() {
               {inr(creator.priceFrom)} <span>starting</span>
             </div>
             <label className="booking__label">Deliverable</label>
-            <select className="booking__select">
+            <select className="booking__select" value={selectedPackage?.id || ''} onChange={(e) => setSelectedPackage(packages.find((p) => String(p.id) === e.target.value) || null)}>
+              {!packages.length && <option value="">{creator.deliverable}</option>}
               {(packages.length ? packages : [{ title: creator.deliverable, price: creator.priceFrom }]).map(
                 (p) => (
                   <option key={p.id || p.title}>
@@ -203,14 +252,15 @@ export default function CreatorProfile() {
             <div className="booking__qty">
               <span>Quantity</span>
               <div className="booking__stepper">
-                <button>−</button>
-                <span>1</span>
-                <button>+</button>
+                <button type="button" onClick={() => setQuantity((n) => Math.max(1, n - 1))}>−</button>
+                <span>{quantity}</span>
+                <button type="button" onClick={() => setQuantity((n) => n + 1)}>+</button>
               </div>
             </div>
 
-            <button className="btn btn--primary booking__cta">Add to cart</button>
-            <button className="btn btn--outline booking__cta">Send a custom offer</button>
+            <button className="btn btn--primary booking__cta" onClick={addToCart}>Add to cart</button>
+            <button className="btn btn--outline booking__cta" onClick={sendOffer}>Send a custom offer</button>
+            {actionMessage && <p className="profile__bio">{actionMessage}</p>}
             <p className="booking__note">
               🔒 You won’t be charged yet. Funds are held in escrow and released only after you
               approve the content.
@@ -229,6 +279,26 @@ export default function CreatorProfile() {
             ))}
           </div>
         </section>
+      )}
+
+      {/* Photo lightbox */}
+      {galleryOpen && (
+        <div
+          className="profile__lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${creator.name} photos`}
+          onClick={() => setGalleryOpen(false)}
+        >
+          <button className="profile__lightbox-close" aria-label="Close" onClick={() => setGalleryOpen(false)}>
+            ×
+          </button>
+          <div className="profile__lightbox-grid" onClick={(e) => e.stopPropagation()}>
+            {gallery.map((src, i) => (
+              <img key={i} src={src} alt={`${creator.name} ${i + 1}`} />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )

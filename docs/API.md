@@ -11,7 +11,10 @@
 
 - **Base URL:** `/api/v1`
 - **Format:** JSON over HTTPS
-- **Auth:** `Authorization: Bearer <token>` (all endpoints except `GET /creators*`, `/creators/suggestions`, `/creators/filters`, and `/auth/*`)
+- **Auth:** `Authorization: Bearer <token>` on all endpoints **except** the
+  public discovery ones — `GET /creators` (search/list), `GET /creators/suggestions`,
+  `GET /creators/filters` — and `/auth/*`. Note: `GET /creators/:id` and its
+  sub-resources (`/packages`, `/reviews`, `/similar`) **are** login-gated (see §3).
 - **Currency:** all money is **INR integers** (e.g. `8000` = ₹8,000). Where the UI shows a formatted value, also send a display string.
 - **Pagination envelope (used by every list):**
   ```jsonc
@@ -68,6 +71,9 @@
 
 | Method | Path | Purpose | Request body | Response |
 |--------|------|---------|--------------|----------|
+| `POST` | `/auth/signup/email` | Send an email verification code before account creation | `{ email }` | `{ ok: true }` |
+| `POST` | `/auth/signup/verify-email` | Verify the code | `{ email, code }` | `{ verificationToken }` |
+| `POST` | `/auth/signup/complete` | Create the account after email verification | `{ email, verificationToken, password }` | `{ token, user }` |
 | `POST` | `/auth/signup` | Register a brand account | `{ name, email, password, companyName }` | `{ token, user }` |
 | `POST` | `/auth/login` | Log in | `{ email, password }` | `{ token, user }` |
 | `POST` | `/auth/logout` | Invalidate session | — | `204` |

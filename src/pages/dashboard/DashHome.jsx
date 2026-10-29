@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getSummary } from '../../api/dashboard.js'
-import { brand, homeStats, topCreators as mockTopCreators } from '../../data/dashboard.js'
+import { getUser } from '../../lib/auth.js'
+import { homeStats, topCreators as mockTopCreators } from '../../data/dashboard.js'
 import DashCreatorCard from '../../components/dashboard/DashCreatorCard.jsx'
 import './dash-pages.css'
 import './DashHome.css'
@@ -10,7 +11,7 @@ import './DashHome.css'
 const isGreen = (sub = '') => /^\+|100%|on time/i.test(sub)
 
 export default function DashHome() {
-  const [greeting, setGreeting] = useState(brand.name)
+  const [greeting, setGreeting] = useState(getUser()?.companyName || getUser()?.name || 'your workspace')
   const [stats, setStats] = useState(homeStats)
   const [creators, setCreators] = useState(mockTopCreators)
   const [loading, setLoading] = useState(true)
@@ -32,9 +33,8 @@ export default function DashHome() {
   }, [])
 
   return (
-    <div className="dpage">
-      <h1 className="dhome__greeting">Good morning, {greeting}</h1>
-      <p className="dpage__sub">Here’s what’s happening with your creator jobs today.</p>
+    <div className="dpage brand-overview">
+      <div className="workspace-welcome"><div><span className="eyebrow">YOUR CREATIVE WORKSPACE</span><h1 className="dhome__greeting">Welcome back, {greeting}.</h1><p className="dpage__sub">A little direction. A lot of possibility.</p></div><Link className="btn btn--primary" to="/dashboard/jobs?post=1">Post a campaign ↗</Link></div>
 
       {/* Stats */}
       <div className="dstats dhome__stats">
@@ -47,6 +47,13 @@ export default function DashHome() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="brand-overview-section"><span className="eyebrow">MAKE YOUR NEXT MOVE.</span><h2>A little direction. More possibility.</h2></div>
+      <div className="workspace-shortcuts">
+        <Link to="/dashboard/jobs"><span>01 / CAMPAIGNS</span><h2>Find your next collaboration.</h2><p>Review your campaigns and creator proposals.</p><strong>Open campaigns ↗</strong></Link>
+        <Link to="/dashboard/deliverables"><span>02 / CONTENT</span><h2>Keep good work moving.</h2><p>Your campaign content, ready for a closer look.</p><strong>Review content ↗</strong></Link>
+        <Link to="/dashboard/search"><span>03 / DISCOVERY</span><h2>Meet a fresh perspective.</h2><p>Explore creators for your next brand story.</p><strong>Discover creators ↗</strong></Link>
       </div>
 
       {/* Top creators */}

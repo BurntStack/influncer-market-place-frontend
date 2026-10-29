@@ -4,19 +4,19 @@ import './Footer.css'
 const COLUMNS = [
   {
     title: 'Product',
-    links: ['Find creators', 'Campaigns', 'Escrow payments', 'Reporting'],
+    links: [['Find creators', '/creators'], ['Post a campaign', '/dashboard/jobs?post=1'], ['Orders & payments', '/dashboard/orders'], ['Reporting', '/dashboard/reporting']],
   },
   {
     title: 'For brands',
-    links: ['D2C founders', 'Agencies', 'Marketing teams', 'Enterprise'],
+    links: [['How it works', '/#brands'], ['Explore features', '/#features'], ['Campaign budgets', '/#pricing']],
   },
   {
-    title: 'Free tools',
-    links: ['Rate calculator', 'Engagement checker', 'Brief template', 'Contract template'],
+    title: 'Your workspace',
+    links: [['Saved creators', '/dashboard/favorites'], ['Campaigns', '/dashboard/jobs'], ['Content library', '/dashboard/deliverables']],
   },
   {
-    title: 'Company',
-    links: ['About', 'Careers', 'Help centre', 'Contact'],
+    title: 'Get started',
+    links: [['Create an account', '/signup'], ['Log in', '/login'], ['Account settings', '/dashboard/account/settings']],
   },
 ]
 
@@ -39,9 +39,9 @@ export default function Footer() {
           <div key={col.title} className="footer__col">
             <h4>{col.title}</h4>
             <ul>
-              {col.links.map((link) => (
-                <li key={link}>
-                  <a href="#">{link}</a>
+              {col.links.map(([label, to]) => (
+                <li key={label}>
+                  <Link to={to}>{label}</Link>
                 </li>
               ))}
             </ul>
@@ -52,9 +52,8 @@ export default function Footer() {
       <div className="container footer__bottom">
         <span>© {new Date().getFullYear()} xxxxxx. All rights reserved.</span>
         <div className="footer__legal">
-          <a href="#">Terms</a>
-          <a href="#">Privacy</a>
-          <a href="#">Refund policy</a>
+          <Link to="/#brands">How hiring works</Link>
+          <Link to="/dashboard/orders">Manage orders</Link>
         </div>
       </div>
     </footer>

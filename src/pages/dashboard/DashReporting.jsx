@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   reportStats,
   viewsByMonth,
@@ -6,14 +6,33 @@ import {
   reportTopCreators,
   getCreator,
 } from '../../data/dashboard.js'
+import { getReporting } from '../../api/dashboard.js'
+import { downloadFile } from '../../lib/apiClient.js'
 import Dropdown from '../../components/Dropdown.jsx'
 import './dash-pages.css'
 import './DashReporting.css'
 
 const CHART_MAX = 800 // y-axis top in k
+const PERIOD_MAP = { 'Last 30 days': 'last_30_days', 'Last 3 months': 'last_3_months', 'Last 6 months': 'last_6_months', 'Last 12 months': 'last_12_months', 'All time': 'all_time' }
 
 export default function DashReporting() {
   const [period, setPeriod] = useState('Last 6 months')
+  const [report, setReport] = useState({ reportStats, viewsByMonth, spendByPlatform, reportTopCreators })
+
+  useEffect(() => {
+    getReporting(PERIOD_MAP[period]).then((data) => {
+      if (!data) return
+      setReport({
+        reportStats: data.stats || reportStats,
+        viewsByMonth: data.viewsByMonth || viewsByMonth,
+        spendByPlatform: data.spendByPlatform || spendByPlatform,
+        reportTopCreators: data.topCreators || reportTopCreators,
+      })
+    }).catch(() => {})
+  }, [period])
+
+  const { reportStats: stats, viewsByMonth: monthlyViews, spendByPlatform: platformSpend, reportTopCreators: creators } = report
+  const exportReport = () => downloadFile(`/reporting/export?period=${encodeURIComponent(PERIOD_MAP[period])}`, 'reporting-export').catch(() => {})
   return (
     <div className="dpage">
       <div className="dpage__head">
@@ -29,12 +48,12 @@ export default function DashReporting() {
             align="right"
             buttonClassName="dbtn-ghost"
           />
-          <button className="btn btn--dark">⬇ Export CSV</button>
+          <button className="btn btn--dark" onClick={exportReport}>⬇ Export CSV</button>
         </div>
       </div>
 
       <div className="dstats report__stats">
-        {reportStats.map((s) => (
+        {stats.map((s) => (
           <div className="dstat" key={s.label}>
             <div className="dstat__label">{s.label}</div>
             <div className="dstat__value">{s.value}</div>
@@ -64,7 +83,7 @@ export default function DashReporting() {
               <span>0</span>
             </div>
             <div className="report__plot">
-              {viewsByMonth.map((m) => (
+              {monthlyViews.map((m) => (
                 <div className="report__group" key={m.month}>
                   <div className="report__pair">
                     <span
@@ -87,7 +106,7 @@ export default function DashReporting() {
         <div className="dcard report__spend">
           <h3>Spend by platform</h3>
           <ul>
-            {spendByPlatform.map((s) => (
+            {platformSpend.map((s, index) => (
               <li key={s.label}>
                 <div className="report__spend-row">
                   <span>{s.label}</span>
@@ -96,7 +115,7 @@ export default function DashReporting() {
                   </span>
                 </div>
                 <span className="report__spend-bar">
-                  <span style={{ width: `${s.pct}%`, background: s.color }} />
+                  <span style={{ width: `${s.pct}%`, background: ['#354f34', '#829b5d', '#c5dd8a'][index % 3] }} />
                 </span>
               </li>
             ))}
@@ -122,8 +141,8 @@ export default function DashReporting() {
             </tr>
           </thead>
           <tbody>
-            {reportTopCreators.map((r) => {
-              const c = getCreator(r.creatorId)
+            {creators.map((r) => {
+              const c = getCreator(r.creatorId) || r.creator || { image: '', name: 'Creator', category: '' }
               return (
                 <tr key={r.creatorId}>
                   <td>

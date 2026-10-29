@@ -6,7 +6,7 @@ import { isAuthed } from '../lib/auth.js'
 export default function RequireAuth({ children }) {
   const location = useLocation()
   if (!isAuthed()) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />
+    return <Navigate to="/login" state={{ from: location.pathname + location.search + location.hash }} replace />
   }
   return children
 }

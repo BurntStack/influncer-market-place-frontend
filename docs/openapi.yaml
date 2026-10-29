@@ -28,6 +28,57 @@ tags:
 
 paths:
   # ---------------- Auth ----------------
+  /auth/signup/email:
+    post:
+      tags: [Auth]
+      summary: Send the signup email verification code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        "200": { description: Verification email accepted }
+  /auth/signup/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify the signup email code
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email: { type: string, format: email }
+                code: { type: string }
+      responses:
+        "200": { description: Verified, content: { application/json: { schema: { type: object, required: [verificationToken], properties: { verificationToken: { type: string } } } } } }
+  /auth/signup/complete:
+    post:
+      tags: [Auth]
+      summary: Complete signup after email verification
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, verificationToken, password]
+              properties:
+                email: { type: string, format: email }
+                verificationToken: { type: string }
+                password: { type: string, format: password }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/AuthResponse" } } } }
   /auth/signup:
     post:
       tags: [Auth]

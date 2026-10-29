@@ -6,98 +6,62 @@
   border-radius: var(--r-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .dccard:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 .dccard__media {
   position: relative;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
 }
 .dccard__media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
+.dccard:hover .dccard__media img { transform: scale(1.04); }
 .dccard__media::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), transparent 55%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, transparent 55%);
 }
 .dccard__badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
-  padding: 5px 10px;
-  border-radius: var(--r-pill);
-  background: rgba(20, 20, 20, 0.78);
-  backdrop-filter: blur(4px);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  padding: 4px 10px; border-radius: var(--r-pill);
+  background: rgba(20, 20, 20, 0.78); backdrop-filter: blur(6px);
+  color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
 }
 .dccard__save {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  z-index: 2;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--ink-900);
-  font-size: 14px;
+  position: absolute; top: 9px; right: 9px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(4px);
+  color: var(--text-muted); font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.12s, background 0.12s, transform 0.12s;
 }
-.dccard__save:hover {
-  color: var(--pink);
-}
+.dccard__save:hover { color: var(--pink); background: #fff; transform: scale(1.1); }
+.dccard__save.is-saved { color: var(--pink); background: #fff; }
+
 .dccard__followers {
-  position: absolute;
-  left: 12px;
-  bottom: 40px;
-  z-index: 2;
-  font-size: 11px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  position: absolute; left: 12px; bottom: 38px; z-index: 2;
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85);
 }
 .dccard__name {
-  position: absolute;
-  left: 12px;
-  bottom: 12px;
-  z-index: 2;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
+  position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 2;
+  color: #fff; font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.dccard__name span {
-  font-size: 12px;
-  font-weight: 600;
-  color: #ffd84d;
-  margin-left: 2px;
-}
-.dccard__foot {
-  padding: 12px 14px;
-}
+.dccard__name span { font-size: 13px; font-weight: 600; color: #fcd34d; }
+
+.dccard__foot { padding: 12px 14px 14px; }
 .dccard__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; font-size: 13px; color: var(--text-muted);
 }
-.dccard__row strong {
-  color: var(--text);
-  font-size: 14px;
-}
-.dccard__loc {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--text-faint);
-}
+.dccard__row strong { color: var(--text); font-size: 15px; font-weight: 700; }
+.dccard__loc { margin-top: 5px; font-size: 12px; color: var(--text-faint); }

@@ -153,3 +153,6 @@ dist-ssr
 *.local
 .DS_Store
 .playwright-mcp/
+
+.vercel
+.env*

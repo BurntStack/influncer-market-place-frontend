@@ -11,6 +11,8 @@
 // Token storage lives here (not in auth.js) so this module has no imports and
 // there's no circular dependency: auth.js depends on apiClient, never the reverse.
 
+import { refreshDemoPhotos } from './creatorPhotos.js'
+
 const BASE_URL = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '')
 const TOKEN_KEY = 'collivra_token'
 
@@ -87,7 +89,7 @@ async function request(path, { method = 'GET', body, headers = {}, signal } = {}
     throw new ApiError(message, { status: res.status, code, data })
   }
 
-  return data
+  return refreshDemoPhotos(data)
 }
 
 // Build a query string from a params object, skipping empty values.
@@ -105,4 +107,19 @@ export const api = {
   post: (path, body, opts) => request(path, { ...opts, method: 'POST', body }),
   patch: (path, body, opts) => request(path, { ...opts, method: 'PATCH', body }),
   del: (path, opts) => request(path, { ...opts, method: 'DELETE' }),
+}
+
+// Download binary/CSV exports without forcing the JSON response parser.
+export const downloadFile = async (path, filename) => {
+  const res = await fetch(`${BASE_URL}${path}`, { headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {} })
+  if (!res.ok) throw new ApiError(`Download failed (${res.status})`, { status: res.status })
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }

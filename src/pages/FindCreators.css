@@ -21,21 +21,13 @@
 }
 .find__search-seg {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 6px 18px;
+  align-items: center;
+  padding: 0 18px;
   border-radius: var(--r-pill);
 }
 .find__search-seg.grow {
   flex: 1;
   border-left: 1px solid var(--border);
-}
-.find__search-seg label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .find__search-seg select,
 .find__search-seg input {
@@ -43,7 +35,7 @@
   outline: none;
   background: transparent;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--text);
   padding: 2px 0;
@@ -54,7 +46,7 @@
   border-radius: 50%;
   background: var(--ink-900);
   color: #fff;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 /* Filter chips */
@@ -78,7 +70,7 @@
   border: 1px solid var(--border-strong);
   background: var(--surface);
   border-radius: var(--r-pill);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
 }
 .chip:hover {
@@ -93,14 +85,14 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text-muted);
   white-space: nowrap;
 }
 .find__sort-dd {
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
@@ -132,7 +124,7 @@
 .find__band p {
   margin-top: 6px;
   color: var(--text-on-dark-muted);
-  font-size: 15px;
+  font-size: 17px;
 }
 
 .find__empty {
@@ -155,7 +147,7 @@
   border: 1px solid var(--border-strong);
   background: var(--surface);
   border-radius: var(--r-md);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-muted);
 }

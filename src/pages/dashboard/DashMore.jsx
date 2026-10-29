@@ -4,10 +4,10 @@ import './dash-pages.css'
 import './DashMore.css'
 
 const WORKSPACE = [
-  { label: 'Lists', meta: '6 lists', to: '/dashboard/lists' },
+  { label: 'Favorites', to: '/dashboard/favorites' },
   { label: 'Deliverables', meta: '2 to review', to: '/dashboard/deliverables' },
   { label: 'Reporting', to: '/dashboard/reporting' },
-  { label: 'Messages', meta: '3 unread', to: '/dashboard/orders' },
+  { label: 'Messages', to: '/dashboard/account/messages' },
 ]
 
 export default function DashMore() {
@@ -32,7 +32,7 @@ export default function DashMore() {
         <span className="more__chev">›</span>
       </div>
 
-      <Link to="/dashboard/jobs" className="btn btn--dark more__post">
+      <Link to="/dashboard/jobs?post=1" className="btn btn--dark more__post">
         + Post a job
       </Link>
 
@@ -51,11 +51,11 @@ export default function DashMore() {
 
       <div className="more__label">Account</div>
       <div className="more__group">
-        <button className="more__row" onClick={() => {}}>
+        <button className="more__row" onClick={() => navigate('/dashboard/account/settings')}>
           <span>Settings</span>
           <span className="more__chev">›</span>
         </button>
-        <button className="more__row" onClick={() => {}}>
+        <button className="more__row" onClick={() => navigate('/dashboard/account/support')}>
           <span>Help &amp; support</span>
           <span className="more__chev">›</span>
         </button>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { listCreators, getFilters } from '../api/creators.js'
 import CreatorCard from '../components/CreatorCard.jsx'
 import Dropdown from '../components/Dropdown.jsx'
@@ -8,13 +8,16 @@ import './FindCreators.css'
 const PAGE_SIZE = 8
 
 // UI sort label -> API `sort` value.
-const SORT_OPTIONS = ['Recommended', 'Price: low to high', 'Price: high to low', 'Most followers']
+const SORT_OPTIONS = ['Recommended', 'Trending', 'Price: low to high', 'Price: high to low', 'Most followers']
 const SORT_MAP = {
   Recommended: 'recommended',
+  Trending: 'trending',
   'Price: low to high': 'price_asc',
   'Price: high to low': 'price_desc',
   'Most followers': 'followers',
 }
+// API value -> UI label (for seeding sort from a suggestion/URL).
+const SORT_LABEL = Object.fromEntries(Object.entries(SORT_MAP).map(([k, v]) => [v, k]))
 
 // Buckets that translate a chip choice into min/max query params.
 const FOLLOWER_BUCKETS = {
@@ -29,6 +32,13 @@ const PRICE_BUCKETS = {
   '₹10,000+': { priceMin: 10000 },
 }
 
+// Find the bucket label whose min/max match the given URL params (so a
+// suggestion like {priceMax:5000} selects the "Under ₹5,000" chip).
+const bucketFor = (buckets, parts) =>
+  Object.keys(buckets).find((label) =>
+    Object.entries(parts).every(([k, v]) => String(buckets[label][k] ?? '') === String(v ?? '')),
+  )
+
 // Static fallbacks used until GET /creators/filters responds (or if it fails).
 const FALLBACK_FILTERS = {
   platforms: ['Instagram', 'YouTube', 'Facebook', 'X', 'LinkedIn'],
@@ -39,11 +49,13 @@ const FALLBACK_FILTERS = {
 
 export default function FindCreators() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   const [platform, setPlatform] = useState('All')
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState({})
   const [sort, setSort] = useState('Recommended')
+  const [category, setCategory] = useState('') // from suggestions; no UI chip
   const [page, setPage] = useState(1)
 
   const [options, setOptions] = useState(FALLBACK_FILTERS)
@@ -56,12 +68,32 @@ export default function FindCreators() {
     setPage(1)
   }
 
-  // Seed query + platform from the URL (hero search links here with ?q=&platform=).
+  // Seed state from the URL. The hero search links here with ?q=&platform=,
+  // and the suggestion chips add ?category=&city=&sort=&priceMax=&followersMin=…
   useEffect(() => {
-    const q = searchParams.get('q')
-    const p = searchParams.get('platform')
-    if (q) setQuery(q)
-    if (p) setPlatform(p)
+    const g = (k) => searchParams.get(k) || ''
+    if (searchParams.has('q')) setQuery(searchParams.get('q') || '')
+    setPlatform(g('platform') || 'All')
+    setCategory(g('category'))
+    const sortRaw = g('sort')
+    if (SORT_LABEL[sortRaw]) setSort(SORT_LABEL[sortRaw])
+
+    const city = g('city')
+    const priceBucket = bucketFor(PRICE_BUCKETS, {
+      priceMin: g('priceMin') || undefined,
+      priceMax: g('priceMax') || undefined,
+    })
+    const followerBucket = bucketFor(FOLLOWER_BUCKETS, {
+      followersMin: g('followersMin') || undefined,
+      followersMax: g('followersMax') || undefined,
+    })
+    setFilters((f) => ({
+      ...f,
+      ...(city ? { city } : {}),
+      ...(priceBucket ? { price: priceBucket } : {}),
+      ...(followerBucket ? { followers: followerBucket } : {}),
+    }))
+    setPage(1)
   }, [searchParams])
 
   // Data-driven dropdown options.
@@ -76,6 +108,7 @@ export default function FindCreators() {
     const p = {
       q: query.trim() || undefined,
       platform: platform !== 'All' ? platform : undefined,
+      category: category || undefined,
       contentType: filters.content,
       city: filters.city,
       gender: filters.gender && filters.gender !== 'Any' ? filters.gender : undefined,
@@ -88,7 +121,7 @@ export default function FindCreators() {
       ...(PRICE_BUCKETS[filters.price] || {}),
     }
     return p
-  }, [query, platform, filters, sort, page])
+  }, [query, platform, category, filters, sort, page])
 
   // Debounced fetch on any param change. An AbortController drops stale responses.
   const debounce = useRef()
@@ -144,9 +177,8 @@ export default function FindCreators() {
       </h1>
 
       {/* Search bar */}
-      <div className="find__search">
+      <form className="find__search" onSubmit={(e) => e.preventDefault()}>
         <div className="find__search-seg">
-          <label>Platform</label>
           <select
             value={platform}
             onChange={(e) => {
@@ -160,9 +192,8 @@ export default function FindCreators() {
           </select>
         </div>
         <div className="find__search-seg grow">
-          <label>Who, what, where</label>
           <input
-            placeholder="Beauty · Bengaluru"
+            placeholder="Keyword or category"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -170,10 +201,10 @@ export default function FindCreators() {
             }}
           />
         </div>
-        <button className="find__search-btn" aria-label="Search">
+        <button className="find__search-btn" type="submit" aria-label="Search">
           🔍
         </button>
-      </div>
+      </form>
 
       {/* Filter chips */}
       <div className="find__filters">
@@ -224,7 +255,9 @@ export default function FindCreators() {
               <h3>Can’t pick? Let creators come to you.</h3>
               <p>Post a campaign brief and get proposals from matching creators within 24 hours.</p>
             </div>
-            <button className="btn btn--primary">Post a campaign</button>
+            <button className="btn btn--primary" onClick={() => navigate('/dashboard/jobs?post=1')}>
+              Post a campaign
+            </button>
           </div>
 
           {secondHalf.length > 0 && (

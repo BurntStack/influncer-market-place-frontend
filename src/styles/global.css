@@ -59,7 +59,7 @@ p {
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-faint);
 }
@@ -73,7 +73,7 @@ p {
   border: 1px solid transparent;
   border-radius: var(--r-pill);
   padding: 12px 22px;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1;
   transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease,
@@ -129,11 +129,11 @@ p {
 
 .btn--sm {
   padding: 9px 16px;
-  font-size: 14px;
+  font-size: 16px;
 }
 .btn--lg {
   padding: 15px 28px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 /* Reusable card */

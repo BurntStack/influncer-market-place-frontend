@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './HiringSteps.css'
 
 const STEPS = [
@@ -36,6 +38,9 @@ const BIDS = [
 ]
 
 export default function HiringSteps() {
+  const navigate = useNavigate()
+  const [selectedName, setSelectedName] = useState(BIDS[0].name)
+  const selectedBid = BIDS.find((bid) => bid.name === selectedName)
   return (
     <section className="section hiring" id="brands">
       <div className="container">
@@ -84,8 +89,8 @@ export default function HiringSteps() {
                       <span>{b.note}</span>
                     </div>
                     <span className="jobcard__bidprice">{b.price}</span>
-                    <button className={`jobcard__pick ${b.selected ? 'is-selected' : ''}`}>
-                      {b.selected ? 'Selected' : 'Select'}
+                    <button type="button" aria-pressed={selectedName === b.name} onClick={() => setSelectedName(b.name)} className={`jobcard__pick ${selectedName === b.name ? 'is-selected' : ''}`}>
+                      {selectedName === b.name ? 'Selected' : 'Select'}
                     </button>
                   </li>
                 ))}
@@ -95,8 +100,8 @@ export default function HiringSteps() {
             <div className="jobcard__escrow">
               <span className="jobcard__shield">🛡️</span>
               <div>
-                <strong>₹7,500 held safely</strong>
-                <span>Released to Tara after the reel is verified</span>
+                <strong>{selectedBid.price} · example booking</strong>
+                <span>Selected: {selectedBid.name}. No payment is taken in this preview.</span>
               </div>
               <span className="jobcard__escrow-tag">In escrow</span>
             </div>
@@ -115,7 +120,7 @@ export default function HiringSteps() {
               </li>
             ))}
             <li className="steps__cta">
-              <button className="btn btn--dark btn--lg">Post your first job</button>
+              <button className="btn btn--dark btn--lg" onClick={() => navigate('/dashboard/jobs?post=1')}>Post your first job</button>
             </li>
           </ol>
         </div>

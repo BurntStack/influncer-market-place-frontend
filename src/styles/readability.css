@@ -1,0 +1,71 @@
+/* Comfortable reading sizes across marketing and workspace screens. */
+body { font-size: 18px; }
+input, select, textarea { font-size: 17px; }
+.editorial-nav .nav__plain, .editorial-nav .nav__login { font-size: 16px; }
+.editorial-nav .editorial-nav-cta { font-size: 15px; min-height: 42px; }
+.editorial-nav .nav__bar { min-height: 72px; }
+.editorial-nav .nav__logo { flex-shrink: 0; }
+.editorial-nav .nav__links { gap: 2px; }
+.editorial-nav .nav__actions { flex-shrink: 0; }
+.editorial-hero-note { flex-wrap: wrap; row-gap: 8px; }
+.preview-tabs { gap: 12px; padding-inline: 20px; }
+.preview-tabs button { flex: 1; text-align: center; }
+.preview-bid > span:nth-child(2) { min-width: 0; }
+.preview-bid b, .preview-radio { flex-shrink: 0; }
+.preview-bids-label, .preview-bottom { flex-wrap: wrap; gap: 10px; }
+.preview-bottom button { min-height: 40px; }
+.preview-review { min-height: 360px; }
+.preview-bid img, .preview-person img { width: 42px; height: 42px; flex-shrink: 0; }
+.preview-radio { width: 20px; height: 20px; font-size: 13px; }
+.preview-disclaimer { line-height: 1.6; }
+.workspace-items > div > span:first-child { width: 40px; height: 40px; flex-shrink: 0; }
+.editorial-step { min-height: 315px; }
+.editorial-step h3 { max-width: none; }
+.editorial-search { flex-wrap: wrap; }
+.editorial-search > div { min-width: 280px; }
+.editorial-search input { font-size: 17px; }
+.editorial-faq summary { font-size: 18px; line-height: 1.5; }
+.editorial-faq details p { font-size: 17px; }
+.hcard__foot { flex-wrap: wrap; }
+.hcard__name { line-height: 1.25; }
+.hcard__cat { line-height: 1.4; }
+.dtable-wrap th, .dtable-wrap td { line-height: 1.5; }
+.dtab__count, .dside__badge, .dtop__dot { min-width: 24px; height: auto; min-height: 24px; }
+.pill { line-height: 1.5; }
+.dtop__search { width: 320px; }
+.dtop__search input { min-width: 0; }
+.footer__col a { display: inline-block; padding-block: 3px; }
+.footer__legal { flex-wrap: wrap; }
+@media (max-width: 1100px) {
+  .editorial-nav .nav__burger { display: inline-flex; }
+  .editorial-nav .nav__links { position: absolute; top: 78px; left: 0; right: 0; flex-direction: column; align-items: stretch; margin: 0; padding: 16px; background: white; border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow-lg); display: none; max-height: calc(100dvh - 110px); overflow-y: auto; }
+  .editorial-nav .nav__links.is-open { display: flex; }
+  .editorial-nav .nav__plain { padding: 14px 8px; }
+  .editorial-nav .nav__mobile-cta { display: flex; margin-top: 10px; }
+  .editorial-nav .nav__actions { margin-left: auto; }
+}
+@media (max-width: 720px) {
+  .editorial-actions { flex-wrap: wrap; row-gap: 18px; }
+  .editorial-hero-copy > p { font-size: 18px; }
+  .editorial-hero-note { font-size: 14px; gap: 10px 18px; }
+  .preview-brief, .preview-review { padding: 22px 18px; }
+  .preview-topline { padding-inline: 18px; gap: 12px; }
+  .preview-bids { padding: 18px 12px; }
+  .preview-tabs { padding-inline: 12px; gap: 8px; }
+  .preview-bid { gap: 8px; padding: 12px 8px; }
+  .preview-bid small { line-height: 1.4; }
+  .editorial-search > div { min-width: 0; width: 100%; flex-direction: column; }
+  .editorial-search input { min-height: 44px; }
+  .editorial-step { min-height: 0; }
+  .editorial-categories button { min-height: 44px; }
+  .hcard__foot { gap: 8px; }
+  .hcard__followers { max-width: calc(100% - 55px); padding-inline: 8px; }
+  .hcard__save { width: 36px; height: 36px; }
+  .footer__bottom { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .dpage__head { flex-wrap: wrap; }
+  .dpage__actions { flex-wrap: wrap; }
+  .jobs__completed-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; }
+  .jobs__completed-info { min-width: 0; overflow-wrap: anywhere; }
+  .jobs__completed-row > .pill { grid-column: 2 / -1; justify-self: start; }
+  .jobcard-row__top { flex-wrap: wrap; }
+}

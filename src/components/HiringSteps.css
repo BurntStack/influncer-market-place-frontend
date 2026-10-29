@@ -11,7 +11,7 @@
 }
 .hiring__head p {
   margin-top: 14px;
-  font-size: 17px;
+  font-size: 19px;
   color: var(--text-muted);
 }
 
@@ -37,7 +37,7 @@
   justify-content: space-between;
 }
 .jobcard__kicker {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 .jobcard__status {
@@ -45,7 +45,7 @@
   border-radius: var(--r-pill);
   background: rgba(34, 170, 102, 0.12);
   color: #22aa66;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
 }
 .jobcard__title {
@@ -55,14 +55,14 @@
 }
 .jobcard__budget-label {
   margin-top: 18px;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 .jobcard__budget {
   margin-top: 4px;
   display: flex;
   justify-content: space-between;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .jobcard__track {
@@ -83,7 +83,7 @@
 }
 .jobcard__track-note {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-faint);
 }
 .jobcard__bids-head {
@@ -93,7 +93,7 @@
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
-  font-size: 14px;
+  font-size: 16px;
 }
 .jobcard__bids-head span {
   color: var(--text-muted);
@@ -120,7 +120,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
 }
 .jobcard__bidinfo {
@@ -130,14 +130,14 @@
   flex-direction: column;
 }
 .jobcard__bidinfo strong {
-  font-size: 14px;
+  font-size: 16px;
 }
 .jobcard__bidinfo span {
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-muted);
 }
 .jobcard__bidprice {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -146,7 +146,7 @@
   border-radius: var(--r-pill);
   border: 1px solid var(--border-strong);
   background: var(--surface);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
 }
 .jobcard__pick.is-selected {
@@ -171,10 +171,10 @@
   flex-direction: column;
 }
 .jobcard__escrow strong {
-  font-size: 14px;
+  font-size: 16px;
 }
 .jobcard__escrow span {
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-muted);
 }
 .jobcard__escrow-tag {
@@ -182,7 +182,7 @@
   border-radius: var(--r-pill);
   background: rgba(34, 197, 94, 0.14);
   color: var(--pink-600) !important;
-  font-size: 12px !important;
+  font-size: 15px !important;
   font-weight: 600;
 }
 
@@ -219,7 +219,7 @@
   align-items: center;
   justify-content: center;
   background: rgba(34, 197, 94, 0.14);
-  font-size: 16px;
+  font-size: 18px;
 }
 .step--done .step__marker {
   background: var(--pink);
@@ -227,7 +227,7 @@
   box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.2);
 }
 .step__num {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -235,12 +235,12 @@
 }
 .step__content h4 {
   margin-top: 4px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
 }
 .step__content p {
   margin-top: 6px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.55;
   color: var(--text-muted);
   max-width: 340px;

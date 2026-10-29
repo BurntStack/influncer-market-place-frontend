@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom'
+import { useFavorites, toggleFavorite } from '../lib/favorites.js'
 import './HeroCreatorCard.css'
 
 const inr = (n) => '₹' + n.toLocaleString('en-IN')
 const platformIcon = (p) => (p === 'YouTube' ? '▶' : '◉')
 
 export default function HeroCreatorCard({ creator }) {
+  const saved = useFavorites().some((item) => item.id === creator.id)
+  const toggleSave = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    toggleFavorite(creator)
+  }
   return (
     <Link to={`/creators/${creator.id}`} className="hcard">
       <img className="hcard__img" src={creator.image} alt={creator.name} loading="lazy" />
@@ -12,9 +18,9 @@ export default function HeroCreatorCard({ creator }) {
         {platformIcon(creator.platform)} {creator.followers}
       </span>
       <button
-        className="hcard__save"
+        className={`hcard__save ${saved ? 'is-saved' : ''}`}
         aria-label="Save creator"
-        onClick={(e) => e.preventDefault()}
+        onClick={toggleSave}
       >
         ♡
       </button>

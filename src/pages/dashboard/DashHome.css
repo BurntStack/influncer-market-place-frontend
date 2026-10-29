@@ -1,9 +1,110 @@
+/* ── Welcome banner — uses landing page ink-900 dark style ── */
+.workspace-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 36px 40px;
+  margin-bottom: 20px;
+  border-radius: var(--r-xl);
+  background: var(--ink-900);
+  color: var(--text-on-dark);
+  position: relative;
+  overflow: hidden;
+}
+.workspace-welcome::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -40px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--pink-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.workspace-welcome .eyebrow {
+  color: rgba(0, 113, 227, 0.9);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
 .dhome__greeting {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  color: var(--text-on-dark);
+  margin-top: 6px;
+}
+.workspace-welcome .dpage__sub {
+  color: var(--text-on-dark-muted);
+  margin-top: 6px;
+  font-size: 15px;
+}
+.workspace-welcome .btn--primary {
+  flex: none;
+  white-space: nowrap;
 }
 
-.dhome__stats {
-  margin-top: 28px;
+/* ── Shortcut cards ── */
+.workspace-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+.workspace-shortcuts a {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.workspace-shortcuts a:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--pink);
+}
+.workspace-shortcuts a > span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pink);
+  letter-spacing: 0.1em;
+}
+.workspace-shortcuts a h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+}
+.workspace-shortcuts a p {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex: 1;
+  line-height: 1.5;
+  margin-top: 2px;
+}
+.workspace-shortcuts a strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pink);
+  margin-top: 8px;
+}
+
+/* ── Stats row ── */
+.dhome__stats { margin-top: 4px; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .workspace-welcome {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 28px 24px;
+  }
+  .workspace-shortcuts { grid-template-columns: 1fr; }
+  .dhome__greeting { font-size: 24px; }
 }

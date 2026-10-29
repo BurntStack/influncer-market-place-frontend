@@ -1,7 +1,6 @@
-// Mock creator catalogue. Images are free Pexels portrait photos of Indian
-// creators (hotlink-friendly, no API key). Swap for your real API / CDN later.
-const img = (id) =>
-  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=640&h=800&fit=crop`
+// Example catalogue with locally hosted stock portraits. These are demo identities.
+// Photo sources are recorded in public/creators/CREDITS.md.
+import { creatorPhoto as img } from '../lib/creatorPhotos.js'
 
 export const creators = [
   {
@@ -15,7 +14,7 @@ export const creators = [
     reviews: 42,
     priceFrom: 8000,
     deliverable: '1 Instagram Reel (30–45 sec)',
-    image: img(15602468),
+    image: img('ananya-rao'),
     topCreator: true,
   },
   {
@@ -29,7 +28,7 @@ export const creators = [
     reviews: 67,
     priceFrom: 12500,
     deliverable: '1 YouTube Integration (60 sec)',
-    image: img(6498090),
+    image: img('rohan-mehta'),
   },
   {
     id: 'meera-iyer',
@@ -42,7 +41,7 @@ export const creators = [
     reviews: 51,
     priceFrom: 6500,
     deliverable: '3 Instagram Stories',
-    image: img(17611594),
+    image: img('meera-iyer'),
   },
   {
     id: 'kabir-singh',
@@ -55,7 +54,7 @@ export const creators = [
     reviews: 38,
     priceFrom: 9000,
     deliverable: '1 Instagram Reel + 2 Stories',
-    image: img(20319696),
+    image: img('kabir-singh'),
   },
   {
     id: 'sana-qureshi',
@@ -68,7 +67,7 @@ export const creators = [
     reviews: 29,
     priceFrom: 7200,
     deliverable: '1 Instagram Photo Post',
-    image: img(12995512),
+    image: img('sana-qureshi'),
   },
   {
     id: 'priya-nair',
@@ -81,7 +80,7 @@ export const creators = [
     reviews: 44,
     priceFrom: 5500,
     deliverable: '1 Recipe Reel (UGC)',
-    image: img(8720868),
+    image: img('priya-nair'),
   },
   {
     id: 'arjun-das',
@@ -94,7 +93,7 @@ export const creators = [
     reviews: 33,
     priceFrom: 15000,
     deliverable: '1 YouTube Short',
-    image: img(12596735),
+    image: img('arjun-das'),
   },
   {
     id: 'ishita-kapoor',
@@ -107,7 +106,7 @@ export const creators = [
     reviews: 40,
     priceFrom: 10000,
     deliverable: '1 Get-Ready-With-Me Reel',
-    image: img(6594747),
+    image: img('ishita-kapoor'),
   },
 ]
 

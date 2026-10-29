@@ -11,11 +11,13 @@ import OnboardingPage from './pages/onboarding/OnboardingPage.jsx'
 import DashHome from './pages/dashboard/DashHome.jsx'
 import DashSearch from './pages/dashboard/DashSearch.jsx'
 import DashLists from './pages/dashboard/DashLists.jsx'
+import DashFavorites from './pages/dashboard/DashFavorites.jsx'
 import DashJobs from './pages/dashboard/DashJobs.jsx'
 import DashDeliverables from './pages/dashboard/DashDeliverables.jsx'
 import DashOrders from './pages/dashboard/DashOrders.jsx'
 import DashReporting from './pages/dashboard/DashReporting.jsx'
 import DashMore from './pages/dashboard/DashMore.jsx'
+import DashAccount from './pages/dashboard/DashAccount.jsx'
 
 export default function App() {
   return (
@@ -59,12 +61,14 @@ export default function App() {
         >
           <Route index element={<DashHome />} />
           <Route path="search" element={<DashSearch />} />
-          <Route path="lists" element={<DashLists />} />
+          <Route path="lists" element={<Navigate to="/dashboard/favorites" replace />} />
+          <Route path="favorites" element={<DashFavorites />} />
           <Route path="jobs" element={<DashJobs />} />
           <Route path="deliverables" element={<DashDeliverables />} />
           <Route path="orders" element={<DashOrders />} />
           <Route path="reporting" element={<DashReporting />} />
           <Route path="more" element={<DashMore />} />
+          <Route path="account/:section" element={<DashAccount />} />
         </Route>
 
         {/* Unknown paths → home */}

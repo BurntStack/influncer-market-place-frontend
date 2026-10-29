@@ -18,10 +18,10 @@
   line-height: 1.35;
 }
 .more__user-info strong {
-  font-size: 15px;
+  font-size: 17px;
 }
 .more__user-info span {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 .more__user-info em {
@@ -37,7 +37,7 @@
 
 .more__label {
   margin: 26px 0 10px;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -60,7 +60,7 @@
   background: transparent;
   border-bottom: 1px solid var(--border);
   font-family: inherit;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--text);
   text-align: left;
@@ -81,10 +81,10 @@
 }
 .more__meta em {
   font-style: normal;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 .more__chev {
   color: var(--text-faint);
-  font-size: 18px;
+  font-size: 20px;
 }

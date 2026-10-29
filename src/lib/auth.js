@@ -48,8 +48,33 @@ export const signup = async ({ name, email, password, companyName }) => {
   return data
 }
 
+export const requestSignupVerification = (email) => api.post('/auth/signup/email', { email })
+
+export const verifySignupEmail = (email, code) =>
+  api.post('/auth/signup/verify-email', { email, code })
+
+export const completeSignup = async ({ email, verificationToken, password, name, companyName, mobile, category }) => {
+  const data = await api.post('/auth/signup/complete', {
+    email,
+    verificationToken,
+    password,
+    name,
+    ...(companyName ? { companyName } : {}),
+    ...(mobile ? { mobile } : {}),
+    ...(category ? { category } : {}),
+  })
+  persistSession(data)
+  return data
+}
+
 export const login = async ({ email, password }) => {
   const data = await api.post('/auth/login', { email, password })
+  persistSession(data)
+  return data
+}
+
+export const oauthLogin = async (provider, idToken) => {
+  const data = await api.post(`/auth/oauth/${provider}`, { idToken })
   persistSession(data)
   return data
 }

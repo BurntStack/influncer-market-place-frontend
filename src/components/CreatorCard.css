@@ -33,7 +33,7 @@
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
   color: #fff;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
 }
 .ccard__save {
@@ -46,7 +46,7 @@
   border: none;
   background: rgba(255, 255, 255, 0.9);
   color: var(--ink-900);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
 }
 .ccard__save:hover {
@@ -63,11 +63,11 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.78));
 }
 .ccard__name {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 .ccard__meta {
-  font-size: 12px;
+  font-size: 15px;
   opacity: 0.85;
   margin-top: 2px;
 }
@@ -80,11 +80,11 @@
   padding: 12px 14px;
 }
 .ccard__deliverable {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text-muted);
 }
 .ccard__price {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   white-space: nowrap;
 }

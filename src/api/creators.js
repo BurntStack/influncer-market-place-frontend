@@ -19,3 +19,5 @@ export const getSimilarCreators = (id, opts) => api.get(`/creators/${id}/similar
 // Shortlist heart (204 on success).
 export const saveCreator = (id) => api.post(`/creators/${id}/save`)
 export const unsaveCreator = (id) => api.del(`/creators/${id}/save`)
+export const addCartItem = (body, opts) => api.post('/cart/items', body, opts)
+export const createOffer = (body, opts) => api.post('/offers', body, opts)

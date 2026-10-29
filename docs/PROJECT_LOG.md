@@ -3,7 +3,7 @@
 A running record of what has been built on the frontend, the decisions made,
 and the current state of the project.
 
-_Last updated: 2026-10-27_
+_Last updated: 2026-10-28_
 
 ---
 
@@ -18,7 +18,9 @@ through escrow.
 - **Framework:** React 18 + Vite 5 (JavaScript, no TypeScript)
 - **Routing:** React Router v6
 - **Styling:** plain CSS with design tokens (no CSS framework)
-- **State/data:** local React state + a mock data module (no backend yet)
+- **State/data:** local React state + a typed API layer wired to the live
+  backend (`https://collivra-backend.onrender.com/api/v1`); mock modules remain
+  as instant-paint fallbacks and for the as-yet-unwired dashboard pages
 
 ---
 
@@ -49,6 +51,13 @@ npm run preview  # preview the production build
 src/
   main.jsx                     # entry; BrowserRouter (+ v7 future flags)
   App.jsx                      # routes + shared Navbar/Footer
+  lib/
+    apiClient.js               # fetch wrapper: base URL, bearer token, error
+                               #   normalisation (both {error:{…}} and {detail})
+    auth.js                    # real token/user session (signup/login/logout/me)
+  api/
+    creators.js                # GET /creators, :id, packages, reviews, similar…
+    dashboard.js               # GET /dashboard/summary, PATCH /dashboard/todos
   styles/
     tokens.css                 # design tokens (colors, radii, spacing) from Figma
     global.css                 # resets, layout helpers, button + card primitives
@@ -79,7 +88,10 @@ src/
     dashboard.js               # mock dashboard data (jobs, orders, lists, etc.)
 docs/
   API.md                       # backend API contract
+  openapi.yaml                 # machine-readable contract (OpenAPI 3.0.3)
   PROJECT_LOG.md               # this file
+.env                           # VITE_API_URL (git-ignored)
+.env.example                   # committed template
 ```
 
 ---
@@ -243,27 +255,41 @@ Matched to the **Brand – Home (Mobile)** (390px) and **Mobile nav** frames:
 | 11 | Cleared **console warnings** — enabled React Router v7 future flags; verified a clean console via a headless-browser capture across all pages. |
 | 12 | Figma added the full logged-in experience → built **auth** (login/signup) and the **dashboard** (shell + 7 pages: Home, Search, Lists, Jobs, Deliverables, Orders, Reporting), all responsive. Refactored routing into marketing / auth / dashboard layouts. Verified clean console + screenshots (desktop + mobile) via headless capture. |
 | 13 | Made **all dropdowns functional** — added a reusable `Dropdown` component (click to open, outside-click/Escape to close, selection updates the label) and wired it into every filter chip, sort, period picker, the Lists "•••" menu, and the sidebar user menu, across the dashboard and the public Find Creators page. Verified open/select/close behaviour in a real browser. |
+| 14 | **Wired the frontend to the live backend.** Added `lib/apiClient.js` (bearer token + dual error-envelope handling), rewrote `lib/auth.js` for real token/user sessions, and added `api/creators.js` + `api/dashboard.js`. Replaced mock usage in Home (hero grid), Find Creators (live search + `/creators/filters`), Creator Profile (profile/packages/reviews/similar), Auth (real signup/login), Onboarding, and Dashboard Home (`/dashboard/summary`). Base URL via `VITE_API_URL` (`.env`). Verified in a real browser: live data renders, 0 console errors, auth gate redirects signed-out users to `/login`. |
+| 15 | **Set up version control + remote.** The project folder was sitting inside a stray home-directory git repo (pointing at an unrelated portfolio remote); `git init`'d a clean repo rooted at the project, committed, and pushed to **`BurntStack/influncer-market-place-frontend`** (merged with the repo's initial `.gitignore`). |
+| 16 | **Set up Vercel tooling** — installed the Vercel CLI, the `vercel-plugin` agent guidance, and registered the Vercel MCP server. CLI sign-in + MCP OAuth + deployment pending (user-driven). |
 
 ---
 
 ## 10. Current state
 
-- ✅ Production build is green (`npm run build`, ~52 modules).
-- ✅ Console is clean (no errors/warnings; verified headless across `/`, `/creators`, `/creators/:id`).
+- ✅ Production build is green (`npm run build`, 86 modules).
+- ✅ Console is clean (verified in a real browser across `/`, `/creators`, auth gate).
 - ✅ Desktop + mobile layouts match the Figma.
-- ✅ Auth (`/login`, `/signup`) and the full dashboard (`/dashboard/*`) are built
-  and responsive; all dropdowns/filters are interactive.
-- ⚠️ All data is **mock** (`src/data/creators.js`, `src/data/dashboard.js`); no
-  backend wired yet. Auth "submit" routes straight to `/dashboard` (no real auth
-  or route guard). Filter selections update the UI but don't yet re-query data.
+- ✅ **Live backend wired** for the core flows: real token auth
+  (signup/login/logout; the route guard reads a real session), public creator
+  search/discovery (Home hero, Find Creators + data-driven filters), the gated
+  Creator Profile, and Dashboard Home (`/dashboard/summary`). Base URL from
+  `VITE_API_URL`.
+- ✅ Pushed to GitHub: **`BurntStack/influncer-market-place-frontend`** (`main`).
+- ✅ Dashboard Search, Lists, Jobs, Orders, Deliverables, and Reporting call their
+  documented endpoints and retain local mock data as a cold-start fallback.
+- ✅ Creator save/unsave, package selection, quantity controls, cart, custom
+  offers, list CRUD, campaign creation, order actions, and export controls are
+  wired in the frontend.
+- ✅ Signup is email → verification code → password. Google and Apple use their
+  browser SDKs and exchange provider ID tokens through `/auth/oauth/*`.
+- ⚠️ Onboarding details remain client-side until a profile-update endpoint is
+  added. OAuth requires `VITE_GOOGLE_CLIENT_ID` and `VITE_APPLE_CLIENT_ID`.
 
 ---
 
 ## 11. Next steps
 
-1. Backend implements the endpoints in **`docs/API.md`**.
-2. Add an `apiClient` (fetch wrapper with auth header) + per-feature API modules.
-3. Replace mock `creators.js` with live `GET /creators` / `GET /creators/:id`.
-4. Wire auth (Log in / Sign up), cart, campaigns, and the escrow order flow.
-5. Decide whether to keep or remove the `/creators*` pages (not in current Figma).
-6. Add real assets (logos, creator images) and swap out `picsum.photos`.
+1. Deploy to **Vercel** (CLI + MCP are set up): add build settings and set
+   `VITE_API_URL` as a Vercel env var so production hits the live backend.
+2. Add a profile-update endpoint so onboarding (brand name, mobile, categories)
+   persists server-side instead of only in `localStorage`.
+3. Decide the final brand name and replace the `XXXXXX` placeholder.
+4. Add automated linting and component/e2e tests.
+5. Add real assets (logos, creator images) and swap out placeholder photos.
