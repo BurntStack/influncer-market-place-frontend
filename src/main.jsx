@@ -6,6 +6,7 @@ import './styles/global.css'
 import './styles/premium.css'
 import './styles/readability.css'
 import './styles/brand-workspace.css'
+import './styles/buttons.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

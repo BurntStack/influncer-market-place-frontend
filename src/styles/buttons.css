@@ -1,0 +1,138 @@
+/* Final button layer: a consistent, restrained shape across every workspace. */
+#root :is(.btn, .studio-button, .auth__submit, .auth__social, .dside__post) {
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 12px 20px;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 550;
+  line-height: 1.4;
+  letter-spacing: -.015em;
+  text-decoration: none;
+  white-space: normal;
+  text-align: center;
+  box-shadow: none;
+  transform: none;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+#root :is(.btn--primary, .btn--dark, .studio-button--dark, .auth__submit, .dside__post) {
+  background: #20332d;
+  color: #fffefa;
+  border: 1px solid #20332d;
+  box-shadow: inset 0 1px 0 #ffffff12, 0 2px 3px #20332d0a;
+}
+#root :is(.btn--primary, .btn--dark, .studio-button--dark, .auth__submit, .dside__post):hover:not(:disabled) {
+  background: #30483d;
+  border-color: #30483d;
+  box-shadow: inset 0 1px 0 #ffffff16, 0 3px 8px #20332d12;
+}
+#root :is(.btn--outline, .auth__social) {
+  border: 1px solid #cfd6c8;
+  color: #35483e;
+  background: #fffefa;
+}
+#root :is(.btn--outline, .auth__social):hover:not(:disabled) {
+  border-color: #9aab90;
+  background: #eef1e7;
+  box-shadow: none;
+}
+#root :is(.studio-button--lime, .workspace-welcome .btn) {
+  border: 1px solid #d7ed94;
+  color: #20332d;
+  background: #dcf58a;
+  box-shadow: inset 0 1px 0 #ffffff38;
+}
+#root :is(.studio-button--lime, .workspace-welcome .btn):hover:not(:disabled) {
+  background: #e6f6b2;
+  border-color: #e6f6b2;
+  box-shadow: none;
+}
+#root .studio-button--light {
+  background: #fffefa;
+  color: #20332d;
+  border-color: #fffefa;
+}
+#root .studio-button--light:hover { background: #eaf0de; border-color: #eaf0de; }
+
+/* Small controls use the same proportions, without oversized pills. */
+#root .btn--sm { min-height: 42px; padding: 9px 15px; font-size: 15px; }
+#root .btn--lg { min-height: 54px; padding: 14px 24px; font-size: 17px; }
+#root .editorial-nav .editorial-nav-cta { min-height: 40px; padding: 9px 16px; font-size: 14px; border-radius: 7px; }
+#root .dside__post { min-height: 46px; justify-content: flex-start; padding-inline: 16px; }
+#root .dside__post svg { width: 17px; height: 17px; stroke-width: 1.7; }
+
+/* A quiet arrow compartment gives the main landing actions a clear direction. */
+#root .studio-button { min-height: 54px; justify-content: space-between; padding: 10px 12px 10px 20px; gap: 20px; }
+#root .studio-button > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: #ffffff12;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+#root :is(.studio-button--lime, .studio-button--light) > span { background: #20332d0c; }
+#root .studio-demo-next {
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid #d8dfce;
+  border-radius: 8px;
+  background: #f2f5eb;
+  color: #20332d;
+  font-size: 16px;
+  font-weight: 550;
+}
+#root .studio-demo-next:hover { background: #e9efde; border-color: #b7c5a6; }
+#root .studio-demo-next > span { font-size: 20px; font-weight: 400; }
+#root .studio-search button { min-height: 46px; border-radius: 8px; padding: 11px 18px; font-weight: 550; }
+
+#root :is(.dbtn-ghost, .profile__showall) {
+  border-radius: 7px;
+  border: 1px solid #d6ddce;
+  background: #fffefa;
+  min-height: 40px;
+  padding: 9px 13px;
+  color: #40553f;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: none;
+}
+#root :is(.dbtn-ghost, .profile__showall):hover:not(:disabled) { background: #edf2e4; border-color: #b5c3a6; }
+#root .dtable td:last-child .dbtn-ghost { margin: 3px; }
+#root :is(.pkg-tab, .dsearch__chip, .deliv__filter, .chip, .dpage-btn, .page) { border-radius: 7px; font-weight: 500; }
+#root :is(.dsearch__go, .find__search-btn) { border-radius: 8px; min-width: 46px; min-height: 46px; }
+#root .auth__social { position: relative; padding-inline: 48px; }
+#root .auth__social-icon { position: absolute; left: 18px; width: 20px; text-align: center; }
+
+/* Visible keyboard focus and pressed states without bouncing or glowing. */
+#root :is(.btn, .studio-button, .auth__submit, .auth__social, .dside__post, .dbtn-ghost, .studio-demo-next, .studio-search button):focus-visible {
+  outline: 2px solid #718d56;
+  outline-offset: 4px;
+  box-shadow: none;
+}
+#root :is(.btn, .studio-button, .auth__submit, .auth__social, .dside__post, .dbtn-ghost):active:not(:disabled) {
+  transform: none;
+  box-shadow: inset 0 2px 4px #10291b24;
+}
+#root :is(.btn, .studio-button, .auth__submit, .auth__social, .dbtn-ghost):disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+@media (max-width: 640px) {
+  #root :is(.btn, .auth__submit, .auth__social) { min-height: 46px; padding-inline: 16px; }
+  #root .btn--sm { min-height: 44px; padding: 10px 13px; }
+  #root .studio-button { max-width: 100%; gap: 16px; font-size: 16px; }
+  #root .workspace-form__actions .btn { flex: 1 1 145px; }
+  #root .auth__social { padding-inline: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #root :is(.btn, .studio-button, .auth__submit, .auth__social, .dside__post, .dbtn-ghost) { transition: none; }
+}

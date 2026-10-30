@@ -1,3 +1,4 @@
+import CreatorImage from './CreatorImage.jsx'
 import { Link } from 'react-router-dom'
 import { useFavorites, toggleFavorite } from '../lib/favorites.js'
 import './HeroCreatorCard.css'
@@ -13,7 +14,7 @@ export default function HeroCreatorCard({ creator }) {
   }
   return (
     <Link to={`/creators/${creator.id}`} className="hcard">
-      <img className="hcard__img" src={creator.image} alt={creator.name} loading="lazy" />
+      <CreatorImage className="hcard__img" src={creator.image} alt={creator.name} loading="lazy" />
       <span className="hcard__followers">
         {platformIcon(creator.platform)} {creator.followers}
       </span>

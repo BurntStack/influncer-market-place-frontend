@@ -11,8 +11,6 @@
 // Token storage lives here (not in auth.js) so this module has no imports and
 // there's no circular dependency: auth.js depends on apiClient, never the reverse.
 
-import { refreshDemoPhotos } from './creatorPhotos.js'
-
 const BASE_URL = (import.meta.env.VITE_API_URL || '/api/v1').replace(/\/+$/, '')
 const TOKEN_KEY = 'collivra_token'
 
@@ -89,7 +87,7 @@ async function request(path, { method = 'GET', body, headers = {}, signal } = {}
     throw new ApiError(message, { status: res.status, code, data })
   }
 
-  return refreshDemoPhotos(data)
+  return data
 }
 
 // Build a query string from a params object, skipping empty values.

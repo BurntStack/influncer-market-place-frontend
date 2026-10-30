@@ -1,8 +1,9 @@
+import CreatorImage from './CreatorImage.jsx'
 import { Link } from 'react-router-dom'
 import { useFavorites, toggleFavorite } from '../lib/favorites.js'
 import './CreatorCard.css'
 
-const inr = (n) => '₹' + n.toLocaleString('en-IN')
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
 
 export default function CreatorCard({ creator }) {
   const saved = useFavorites().some((item) => item.id === creator.id)
@@ -14,7 +15,7 @@ export default function CreatorCard({ creator }) {
   return (
     <Link to={`/creators/${creator.id}`} className="ccard">
       <div className="ccard__media">
-        <img src={creator.image} alt={creator.name} loading="lazy" />
+        <CreatorImage src={creator.image} alt={creator.name} loading="lazy" />
         <span className="ccard__followers">▶ {creator.followers}</span>
         <button className={`ccard__save ${saved ? 'is-saved' : ''}`} aria-label={saved ? 'Remove from saved creators' : 'Save creator'} onClick={toggleSave}>
           {saved ? '♥' : '♡'}

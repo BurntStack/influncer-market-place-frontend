@@ -1,9 +1,10 @@
+import CreatorImage from '../CreatorImage.jsx'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useFavorites, toggleFavorite } from '../../lib/favorites.js'
 import './DashCreatorCard.css'
 
-const inr = (n) => '₹' + n.toLocaleString('en-IN')
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
 
 export default function DashCreatorCard({ creator }) {
   const saved = useFavorites().some((item) => item.id === creator.id)
@@ -14,7 +15,7 @@ export default function DashCreatorCard({ creator }) {
   return (
     <Link to={`/creators/${creator.id}`} className="dccard">
       <div className="dccard__media">
-        <img src={creator.image} alt={creator.name} loading="lazy" />
+        <CreatorImage src={creator.image} alt={creator.name} loading="lazy" />
         {creator.badge && <span className="dccard__badge">{creator.badge}</span>}
         <button className={`dccard__save ${saved ? 'is-saved' : ''}`} aria-label={saved ? 'Remove from saved creators' : 'Save'} onClick={toggleSave}>
           {saved ? '♥' : '♡'}

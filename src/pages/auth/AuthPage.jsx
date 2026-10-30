@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { getCreator } from '../../data/creators.js'
 import { completeSignup, login, oauthLogin, requestSignupVerification, verifySignupEmail } from '../../lib/auth.js'
 import './AuthPage.css'
 import './AuthStudio.css'
@@ -69,8 +68,6 @@ export default function AuthPage({ mode = 'signup' }) {
   const [category, setCategory] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const ananya = getCreator('ananya-rao')
-  const priya = getCreator('priya-nair')
   const [title, body, buttonText] = signupCopy(signupStep, email)
   const canSubmit = isSignup
     ? (signupStep === 'email' && email.trim()) || (signupStep === 'verify' && verificationCode.trim()) || (signupStep === 'password' && password.trim() && name.trim())
@@ -127,10 +124,7 @@ export default function AuthPage({ mode = 'signup' }) {
           <span className="auth__eyebrow">THE BRAND WORKSPACE</span>
           <h1>Good ideas.<br /><span>Great company.</span></h1>
           <p className="auth__promo-copy">Find the right voices for your brand. Your next collaboration starts with a connection.</p>
-          <div className="auth__visual">
-            <div className="auth__photos"><img src={ananya.image} alt="Example beauty creator portrait" /><img src={priya.image} alt="Example lifestyle creator portrait" /></div>
-            <span className="auth__visual-caption">Different perspectives. New possibilities.<span>Example creator imagery</span></span>
-          </div>
+          <div className="auth__photo-free"><span>BRANDS × CREATORS</span><h2>Different perspectives.<br />New possibilities.</h2><p>Your brief brings the right people together. Start with an idea.</p></div>
         </div>
         <div className="auth__journey"><span><small>01</small>Your brief.</span><span><small>02</small>Their ideas.</span><span><small>03</small>Your choice.</span></div>
       </aside>

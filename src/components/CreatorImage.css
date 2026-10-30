@@ -1,0 +1,10 @@
+.creator-image-empty { display:grid;place-items:center;width:100%;height:100%;min-height:40px;margin:0;background:#dce3d2;color:#718466; }
+.marquee-card > .creator-image-empty { position:absolute;inset:0;z-index:-2; }
+.creator-image-empty svg { width:42px;height:42px;max-width:60%;max-height:60%; }
+.studio-proposal > .creator-image-empty { width:40px;height:40px;flex-shrink:0;border-radius:50%; }
+.studio-proposal > .creator-image-empty + span { flex:1;min-width:0; }
+.studio-demo-review > .creator-image-empty { width:80px;height:80px;border-radius:50%;margin:0 auto 18px; }
+.auth__photo-free { border:1px solid #ffffff26;border-radius:14px;padding:28px 24px;margin-top:30px;background:#ffffff06; }
+.auth__photo-free > span { color:#dcf58a;font-size:14px;letter-spacing:.12em; }
+.auth__photo-free h2 { color:#f6f5f0;font-size:32px;font-weight:500;line-height:1.2;letter-spacing:-.04em;margin-top:18px; }
+.auth__photo-free p { color:#c3d0bd;font-size:16px;line-height:1.7;margin-top:16px; }

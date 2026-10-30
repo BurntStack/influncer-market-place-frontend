@@ -1,6 +1,4 @@
-// Example catalogue with locally hosted stock portraits. These are demo identities.
-// Photo sources are recorded in public/creators/CREDITS.md.
-import { creatorPhoto as img } from '../lib/creatorPhotos.js'
+// Example identities for the interactive campaign demo; no frontend photography.
 
 export const creators = [
   {
@@ -14,7 +12,6 @@ export const creators = [
     reviews: 42,
     priceFrom: 8000,
     deliverable: '1 Instagram Reel (30–45 sec)',
-    image: img('ananya-rao'),
     topCreator: true,
   },
   {
@@ -28,7 +25,6 @@ export const creators = [
     reviews: 67,
     priceFrom: 12500,
     deliverable: '1 YouTube Integration (60 sec)',
-    image: img('rohan-mehta'),
   },
   {
     id: 'meera-iyer',
@@ -41,7 +37,6 @@ export const creators = [
     reviews: 51,
     priceFrom: 6500,
     deliverable: '3 Instagram Stories',
-    image: img('meera-iyer'),
   },
   {
     id: 'kabir-singh',
@@ -54,7 +49,6 @@ export const creators = [
     reviews: 38,
     priceFrom: 9000,
     deliverable: '1 Instagram Reel + 2 Stories',
-    image: img('kabir-singh'),
   },
   {
     id: 'sana-qureshi',
@@ -67,7 +61,6 @@ export const creators = [
     reviews: 29,
     priceFrom: 7200,
     deliverable: '1 Instagram Photo Post',
-    image: img('sana-qureshi'),
   },
   {
     id: 'priya-nair',
@@ -80,7 +73,6 @@ export const creators = [
     reviews: 44,
     priceFrom: 5500,
     deliverable: '1 Recipe Reel (UGC)',
-    image: img('priya-nair'),
   },
   {
     id: 'arjun-das',
@@ -93,7 +85,6 @@ export const creators = [
     reviews: 33,
     priceFrom: 15000,
     deliverable: '1 YouTube Short',
-    image: img('arjun-das'),
   },
   {
     id: 'ishita-kapoor',
@@ -106,7 +97,6 @@ export const creators = [
     reviews: 40,
     priceFrom: 10000,
     deliverable: '1 Get-Ready-With-Me Reel',
-    image: img('ishita-kapoor'),
   },
 ]
 

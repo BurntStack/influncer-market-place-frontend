@@ -1,3 +1,4 @@
+import CreatorImage from './CreatorImage.jsx'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './CreatorMarquee.css'
@@ -10,7 +11,7 @@ export default function CreatorMarquee({ creators, examples = false }) {
 
   const cards = (copy = false) => <div className="creator-marquee__group" aria-hidden={copy || undefined} inert={copy ? '' : undefined}>
     {items.map((creator, index) => {
-      const content = <><img src={creator.image} alt={copy ? '' : creator.name} loading={index < 6 ? 'eager' : 'lazy'} /><span className="marquee-card__platform">{creator.platform || 'Creator'}</span><div className="marquee-card__details"><strong>{creator.name}</strong><span>{creator.category}</span></div><span className="marquee-card__arrow" aria-hidden="true">↗</span></>
+      const content = <><CreatorImage src={creator.image} alt={copy ? '' : creator.name} loading={index < 6 ? 'eager' : 'lazy'} /><span className="marquee-card__platform">{creator.platform || 'Creator'}</span><div className="marquee-card__details"><strong>{creator.name}</strong><span>{creator.category}</span></div><span className="marquee-card__arrow" aria-hidden="true">↗</span></>
       return examples ? <article className="marquee-card" key={`${creator.id}-${index}`}>{content}</article> : <Link className="marquee-card" to={`/creators/${creator.id}`} key={`${creator.id}-${index}`} tabIndex={copy ? -1 : undefined}>{content}</Link>
     })}
   </div>
