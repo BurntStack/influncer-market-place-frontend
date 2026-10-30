@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { topCreators } from '../../data/dashboard.js'
 import { listCreators } from '../../api/creators.js'
 import DashCreatorCard from '../../components/dashboard/DashCreatorCard.jsx'
 import Dropdown from '../../components/Dropdown.jsx'
@@ -28,22 +27,26 @@ export default function DashSearch() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [error, setError] = useState('')
+  const [reload, setReload] = useState(0)
 
   const setFilter = (key, value) => setFilters((f) => ({ ...f, [key]: value }))
   const clearAll = () => setFilters({})
 
   useEffect(() => {
     const controller = new AbortController()
-    setLoading(true)
+    setLoading(true); setError('')
     const sortMap = { Recommended: 'recommended', 'Price: low to high': 'price_asc', 'Price: high to low': 'price_desc', 'Most followers': 'followers' }
-    listCreators({ q: query, platform: platform === 'Any platform' ? '' : platform, contentType: filters.content, city: filters.location, sort: sortMap[sort], page, pageSize: 8 }, { signal: controller.signal })
+    const followers = { '1k–10k': { followersMin:1000,followersMax:10000 }, '10k–100k': { followersMin:10000,followersMax:100000 }, '100k–500k': { followersMin:100000,followersMax:500000 }, '500k+': { followersMin:500000 } }
+    const prices = { 'Under ₹5,000': { priceMax:5000 }, '₹5,000–₹10,000': { priceMin:5000,priceMax:10000 }, '₹10,000–₹20,000': { priceMin:10000,priceMax:20000 }, '₹20,000+': { priceMin:20000 } }
+    listCreators({ q: query.trim(), platform: platform === 'Any platform' ? '' : platform, contentType: filters.content, city: filters.location, gender: filters.gender === 'Any' ? '' : filters.gender, age: filters.age, language: filters.language, ...followers[filters.followers], ...prices[filters.price], sort: sortMap[sort], page, pageSize: 8 }, { signal: controller.signal })
       .then((data) => {
-        if (data?.results) { setResults(data.results); setTotal(data.total ?? data.results.length) }
+        if (!controller.signal.aborted) { const next = Array.isArray(data) ? data : data?.results || []; setResults(next); setTotal(data.total ?? next.length) }
       })
-      .catch((error) => { if (error.name !== 'AbortError') { setResults([]); setTotal(0) } })
-      .finally(() => setLoading(false))
+      .catch((error) => { if (!controller.signal.aborted) { setResults([]); setTotal(0); setError(error.message || 'Could not load creators.') } })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [query, platform, filters, sort, page])
+  }, [query, platform, filters, sort, page, reload])
   useEffect(() => setPage(1), [query, platform, filters, sort])
 
   return (
@@ -51,7 +54,7 @@ export default function DashSearch() {
       <h1 className="dpage__title">Find your kind of creative.</h1>
       <p className="dpage__sub">Explore different voices. Find the right fit for your next campaign.</p>
 
-      <div className="dsearch__bar">
+      <form className="dsearch__bar" onSubmit={event => { event.preventDefault(); setQuery(query.trim()); setReload(n => n + 1) }}>
         <div className="dsearch__seg">
           <Dropdown
             value={platform}
@@ -63,10 +66,10 @@ export default function DashSearch() {
         <div className="dsearch__seg grow">
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Keyword or category" />
         </div>
-        <button className="dsearch__go" aria-label="Search" onClick={() => setQuery(query.trim())}>
+        <button className="dsearch__go" aria-label="Search" type="submit">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
-      </div>
+      </form>
 
       <div className="dsearch__filters">
         {FILTERS.map((f) => (
@@ -103,6 +106,8 @@ export default function DashSearch() {
           <DashCreatorCard key={c.id} creator={c} />
         ))}
       </div>
+      {error && <div className="workspace-message workspace-message--error" role="alert">{error}<button className="btn btn--outline" onClick={() => setReload(n => n + 1)}>Try again</button></div>}
+      {!loading && !error && !results.length && <div className="workspace-empty"><h3>No creators match this search.</h3><p>Try fewer filters or another category.</p><button className="btn btn--outline" onClick={() => { clearAll(); setQuery(''); setPlatform('Any platform') }}>Reset search</button></div>}
 
       <div className="dsearch__pagination">
         {Array.from({ length: Math.ceil(total / 8) }, (_, i) => i + 1).filter((p) => p === 1 || p === Math.ceil(total / 8) || Math.abs(p - page) <= 1).map((p, i) => (

@@ -112,7 +112,11 @@ export const api = {
 // Download binary/CSV exports without forcing the JSON response parser.
 export const downloadFile = async (path, filename) => {
   const res = await fetch(`${BASE_URL}${path}`, { headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {} })
-  if (!res.ok) throw new ApiError(`Download failed (${res.status})`, { status: res.status })
+  if (!res.ok) {
+    let data = null
+    try { data = await res.json() } catch { /* download errors may be plain text */ }
+    throw new ApiError(data?.error?.message || data?.detail || data?.message || `Download failed (${res.status})`, { status: res.status, data })
+  }
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')

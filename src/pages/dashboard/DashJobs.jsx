@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { jobTabs, jobs as mockJobs, jobsCompleted, getCreator } from '../../data/dashboard.js'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+import { jobTabs, getCreator } from '../../data/dashboard.js'
+import Modal from '../../components/Modal.jsx'
 import { createCampaign, getCampaigns, updateCampaign, getCampaignBids, selectCampaignBid } from '../../api/dashboard.js'
 import './dash-pages.css'
 import './DashJobs.css'
@@ -8,12 +9,20 @@ import './DashJobs.css'
 const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
 
 const emptyForm = { title: '', platform: 'Instagram', deliverables: '', budgetMin: '', budgetMax: '', applyBy: '', brief: '' }
+const normalizeJob = job => {
+  const statuses = { open_for_bids: 'Open for bids', in_progress: 'In progress', awarded: 'In progress', completed: 'Completed', closed: 'Closed', draft: 'Draft' }
+  const status = statuses[job.status] || job.status || 'Open for bids'
+  return { ...job, status, tone: status === 'Open for bids' ? 'green' : 'gray', bids: Number(job.bidCount ?? job.bids ?? 0), budgetMin: Number(job.budgetMin || 0), budgetMax: Number(job.budgetMax || 0) }
+}
 
 export default function DashJobs() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [tab, setTab] = useState('all')
-  const [jobs, setJobs] = useState(mockJobs)
+  const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [reload, setReload] = useState(0)
   const [showForm, setShowForm] = useState(() => searchParams.get('post') === '1')
   const [form, setForm] = useState(emptyForm)
   const [formError, setFormError] = useState('')
@@ -22,6 +31,9 @@ export default function DashJobs() {
   const [reviewingJob, setReviewingJob] = useState(null)
   const [reviewBids, setReviewBids] = useState([])
   const [bidError, setBidError] = useState('')
+  const [bidsLoading, setBidsLoading] = useState(false)
+  const [confirmBid, setConfirmBid] = useState(null)
+  const bidRequest = useRef(0)
   const [selectingBid, setSelectingBid] = useState(null)
   const [saving, setSaving] = useState(false)
   useEffect(() => { setShowForm(searchParams.get('post') === '1') }, [searchParams])
@@ -34,11 +46,13 @@ export default function DashJobs() {
   const openComposer = () => {
     setEditingJob(null)
     setForm(emptyForm)
+    setFormError(''); setFieldErrors({})
     setShowForm(true)
     setSearchParams({ post: '1' })
   }
 
-  const closeComposer = () => {
+  const closeComposer = (afterSave = false) => {
+    if (saving && afterSave !== true) return
     setShowForm(false)
     setSearchParams({})
   }
@@ -48,33 +62,42 @@ export default function DashJobs() {
     setForm({
       title: job.title || '', platform: job.platform || (job.meta?.split(' · ')[0] || 'Instagram'),
       deliverables: job.deliverables || (job.meta?.split(' · ')[1] || ''), budgetMin: job.budgetMin || '',
-      budgetMax: job.budgetMax || '', applyBy: job.applyBy || '', brief: job.brief || '',
+      budgetMax: job.budgetMax || '', applyBy: (job.applyBy || '').slice(0,10), brief: job.brief || '',
     })
     setFormError(''); setFieldErrors({}); setShowForm(true); setSearchParams({ post: '1' })
   }
 
   const openBids = async (job) => {
+    const requestId = ++bidRequest.current
     setReviewingJob(job)
     setReviewBids([])
-    setBidError('Loading bids…')
-    if (job.id && !String(job.id).startsWith('local-')) {
-      try {
-        const data = await getCampaignBids(job.id)
-        const bids = Array.isArray(data) ? data : data?.results || []
-        setReviewBids(bids.map((bid) => ({ ...bid, creator: bid.creator || getCreator(bid.creatorId) })))
-        setBidError('')
-      } catch (_) { setBidError('Could not load bids. Close this panel and try again.') }
-    }
+    setBidError(''); setBidsLoading(true); setConfirmBid(null)
+    try {
+      const data = await getCampaignBids(job.id)
+      if (requestId !== bidRequest.current) return
+      const bids = Array.isArray(data) ? data : data?.results || []
+      setReviewBids(bids.map(bid => ({ ...bid, creator: bid.creator || getCreator(bid.creatorId), creatorId: bid.creator?.id || bid.creatorId })))
+    } catch (error) { if (requestId === bidRequest.current) setBidError(error.message || 'Could not load bids. Please try again.') }
+    finally { if (requestId === bidRequest.current) setBidsLoading(false) }
   }
+  const closeBids = () => {
+    if (selectingBid) return
+    ++bidRequest.current; setReviewingJob(null); setConfirmBid(null)
+    setSearchParams(current => { const next = new URLSearchParams(current); next.delete('review'); return next })
+  }
+  useEffect(() => {
+    const job = jobs.find(item => String(item.id) === searchParams.get('review'))
+    if (job && !reviewingJob) openBids(job)
+  }, [jobs, searchParams])
+  useEffect(() => () => { ++bidRequest.current }, [])
 
   const acceptBid = async (bid) => {
     if (selectingBid || !bid.id) return
-    if (!window.confirm(`Select ${bid.creator?.name || 'this creator'} for ${inr(bid.price ?? bid.amount ?? bid.bidAmount ?? 0)}? This creates an order; it does not charge your account.`)) return
     setSelectingBid(bid.id)
     setBidError('')
     try {
       await selectCampaignBid(reviewingJob.id, bid.id)
-      setReviewingJob(null)
+      setReviewingJob(null); setConfirmBid(null)
       navigate('/dashboard/orders')
     } catch (error) {
       setBidError(error.message || 'Could not select this bid. Please try again.')
@@ -84,18 +107,14 @@ export default function DashJobs() {
   }
 
   useEffect(() => {
-    getCampaigns().then((data) => {
+    const controller = new AbortController()
+    setLoading(true); setLoadError('')
+    getCampaigns({ signal: controller.signal }).then((data) => {
       const next = Array.isArray(data) ? data : data?.results
-      if (next?.length) setJobs(next.map((j) => ({
-        ...j,
-        status: j.status === 'open_for_bids' ? 'Open for bids' : j.status === 'in_progress' ? 'In progress' : j.status,
-        tone: j.status === 'open_for_bids' ? 'green' : 'orange',
-        bids: j.bidCount ?? j.bids ?? 0,
-        budgetMin: j.budgetMin ?? 0,
-        budgetMax: j.budgetMax ?? 0,
-      })))
-    }).catch(() => {})
-  }, [])
+      if (!controller.signal.aborted) setJobs((next || []).map(normalizeJob))
+    }).catch(error => { if (!controller.signal.aborted) setLoadError(error.message || 'Could not load campaigns.') }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [reload])
 
   const submitJob = async (event) => {
     event.preventDefault(); setFormError('')
@@ -114,9 +133,9 @@ export default function DashJobs() {
     try {
       const saved = editingJob ? await updateCampaign(editingJob.id, body) : await createCampaign(body)
       setJobs((current) => editingJob
-        ? current.map((job) => job.id === editingJob.id ? { ...job, ...body, ...(saved || {}) } : job)
-        : [{ ...body, ...(saved || {}), id: saved?.id || `local-${Date.now()}`, status: 'Open for bids', tone: 'green', bids: 0 }, ...current])
-      closeComposer()
+        ? current.map((job) => job.id === editingJob.id ? normalizeJob({ ...job, ...body, ...(saved || {}) }) : job)
+        : [normalizeJob({ ...body, status: 'open_for_bids', ...(saved || {}) }), ...current])
+      closeComposer(true)
       setForm(emptyForm); setFieldErrors({}); setEditingJob(null)
     } catch (err) {
       setFormError(err?.message || 'Could not save this job. Your entered details have been preserved.')
@@ -127,6 +146,8 @@ export default function DashJobs() {
     if (tab === 'all') return true
     if (tab === 'open') return j.status === 'Open for bids'
     if (tab === 'progress') return j.status === 'In progress'
+    if (tab === 'completed') return j.status === 'Completed'
+    if (tab === 'drafts') return j.status === 'Draft'
     return false
   })
 
@@ -134,8 +155,8 @@ export default function DashJobs() {
     all: jobs.length,
     open: jobs.filter((j) => j.status === 'Open for bids').length,
     progress: jobs.filter((j) => j.status === 'In progress').length,
-    completed: jobsCompleted.length,
-    drafts: 0,
+    completed: jobs.filter(j => j.status === 'Completed').length,
+    drafts: jobs.filter(j => j.status === 'Draft').length,
   }
 
   const input = (field, props = {}) => (
@@ -151,7 +172,7 @@ export default function DashJobs() {
         <div>
           <h1 className="dpage__title">Jobs</h1>
           <p className="dpage__sub">
-            Post a job with a budget range. Creators bid, you pick — and pay only when it’s live.
+            A clear brief. Fresh perspectives. Choose the right creator for your next story.
           </p>
         </div>
         <div className="dpage__actions">
@@ -159,13 +180,8 @@ export default function DashJobs() {
         </div>
       </div>
 
-      {showForm && <div className="jobcomposer" role="dialog" aria-modal="true" aria-labelledby="jobcomposer-title">
-        <button className="jobcomposer__backdrop" type="button" aria-label="Close job composer" onClick={closeComposer} />
-        <form className="jobcomposer__panel" onSubmit={submitJob}>
-          <div className="jobcomposer__head">
-            <div><span className="eyebrow">{editingJob ? 'Update campaign' : 'New campaign'}</span><h2 id="jobcomposer-title">{editingJob ? 'Edit job' : 'Post a job'}</h2><p>Give creators enough detail to send a strong bid.</p></div>
-            <button className="jobcomposer__close" type="button" onClick={closeComposer} aria-label="Close">×</button>
-          </div>
+      {showForm && <Modal title={editingJob ? 'Edit job' : 'Post a job'} subtitle="Give creators enough detail to send a strong bid." onClose={closeComposer} busy={saving}>
+        <form className="campaign-form" onSubmit={submitJob}>
           <div className="jobcomposer__body">
             <section className="jobform__section">
               <div className="jobform__section-title"><span>01</span><div><h3>Campaign basics</h3><p>Start with the essentials.</p></div></div>
@@ -189,12 +205,12 @@ export default function DashJobs() {
             {formError && <p className="jobform__error">{formError}</p>}
             <span className="jobcomposer__secure">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Payments stay protected in escrow
+              Set the scope before funding the work
             </span>
-            <div><button className="btn btn--outline" type="button" onClick={closeComposer}>Cancel</button><button className="btn btn--dark" disabled={saving} type="submit">{saving ? 'Saving…' : editingJob ? 'Save changes' : 'Post job'} <span>→</span></button></div>
+            <div><button className="btn btn--outline" disabled={saving} type="button" onClick={closeComposer}>Cancel</button><button className="btn btn--dark" disabled={saving} type="submit">{saving ? 'Saving…' : editingJob ? 'Save changes' : 'Post job'} <span>→</span></button></div>
           </div>
         </form>
-      </div>}
+      </Modal>}
 
       <div className="dtabrow">
         {jobTabs.map((t) => (
@@ -209,9 +225,12 @@ export default function DashJobs() {
       </div>
 
       <div className="jobs__list">
+        {loading && <p className="workspace-message" role="status">Loading your campaigns…</p>}
+        {loadError && <div className="workspace-message workspace-message--error" role="alert">{loadError} <button className="btn btn--outline btn--sm" onClick={() => setReload(n => n + 1)}>Try again</button></div>}
+        {!loading && !loadError && !visible.length && <div className="workspace-empty"><h3>{tab === 'all' ? 'Your next story starts here.' : 'No campaigns in this view.'}</h3><p>Post a brief, set your budget, and invite fresh ideas from creators.</p><button className="btn btn--dark" onClick={openComposer}>Post a campaign ↗</button></div>}
         {visible.map((j) => {
-          const bidders = (j.bidders || []).map(getCreator)
-          const hired = j.hired ? getCreator(j.hired) : null
+          const bidders = (j.bidders || []).map(item => typeof item === 'object' ? item : getCreator(item)).filter(Boolean)
+          const hired = typeof j.hired === 'object' ? j.hired : j.hired ? getCreator(j.hired) : null
           return (
             <article className="jobcard-row dcard" key={j.id}>
               <div className="jobcard-row__top">
@@ -220,7 +239,7 @@ export default function DashJobs() {
                     {j.title}{' '}
                     <span className={`pill pill--${j.tone} pill--dot`}>{j.status}</span>
                   </h3>
-                  <p className="jobcard-row__meta">{j.meta}</p>
+                  <p className="jobcard-row__meta">{j.meta || [j.platform, j.deliverables, j.applyBy && `Apply by ${new Date(j.applyBy).toLocaleDateString('en-IN')}`].filter(Boolean).join(' · ')}</p>
                 </div>
                 {hired ? (
                   <div className="jobcard-row__hired">
@@ -251,7 +270,7 @@ export default function DashJobs() {
 
               <div className="jobcard-row__foot">
                 <span className="jobcard-row__note">
-                  {j.closes ? `⏱ ${j.closes}` : `⚿ ${j.escrowNote}`}
+                  {j.closes || j.escrowNote || (j.status === 'Open for bids' ? 'Compare proposals before choosing your creator.' : 'Keep your collaboration moving.')}
                 </span>
                 <div className="jobcard-row__actions">
                   <button className="dbtn-ghost" onClick={() => openEdit(j)}>Edit</button>
@@ -265,42 +284,14 @@ export default function DashJobs() {
         })}
       </div>
 
-      {(tab === 'all' || tab === 'completed') && (
-        <div className="dcard jobs__completed">
-          <h3>Recently completed</h3>
-          {jobsCompleted.map((c) => {
-            const creator = getCreator(c.creatorId)
-            return (
-              <div className="jobs__completed-row" key={c.title}>
-                <img src={creator.image} alt="" />
-                <div className="jobs__completed-info">
-                  <strong>{c.title}</strong>
-                  <span>with {c.with}</span>
-                </div>
-                <span className="jobs__completed-amount">{inr(c.amount)}</span>
-                <span className="pill pill--gray">{c.paid}</span>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {reviewingJob && <div className="jobcomposer jobreview" role="dialog" aria-modal="true" aria-labelledby="review-title">
-        <button className="jobcomposer__backdrop" type="button" aria-label="Close bid review" onClick={() => setReviewingJob(null)} />
-        <section className="jobcomposer__panel jobreview__panel">
-          <div className="jobcomposer__head"><div><span className="eyebrow">{reviewingJob.bids || reviewBids.length} creator bids</span><h2 id="review-title">Review bids</h2><p>{reviewingJob.title}</p></div><button className="jobcomposer__close" type="button" onClick={() => setReviewingJob(null)} aria-label="Close">×</button></div>
-          <div className="jobreview__list">
-            {bidError && <p role="status" className="dpage__sub">{bidError}</p>}
-            {reviewBids.length ? reviewBids.map((bid, index) => <article className="jobreview__bid" key={bid.creator?.id || bid.creatorId || index}>
-              {bid.creator?.image ? <img src={bid.creator.image} alt="" /> : <div className="jobreview__avatar">{(bid.creator?.name || 'C').charAt(0)}</div>}
-              <div className="jobreview__info"><strong>{bid.creator?.name || bid.name || 'Creator'}</strong><span>{bid.creator?.handle || bid.handle || 'Creator profile'} · {bid.note || 'Ready to collaborate on your campaign.'}</span></div>
-              <strong className="jobreview__amount">{inr(bid.price ?? bid.amount ?? bid.bidAmount ?? 0)}</strong>
-              <button className="btn btn--outline btn--sm" type="button" disabled={!bid.creator?.id} onClick={() => navigate(`/creators/${bid.creator.id}`)}>View profile</button>
-              <button className="btn btn--primary btn--sm" type="button" disabled={!bid.id || Boolean(selectingBid)} onClick={() => acceptBid(bid)}>{selectingBid === bid.id ? 'Selecting…' : 'Select creator'}</button>
-            </article>) : <div className="jobreview__empty"><span>◎</span><strong>No bids yet</strong><p>Creators will appear here as they apply to this job.</p></div>}
-          </div>
-        </section>
-      </div>}
+      {reviewingJob && <Modal title={confirmBid ? 'Ready to work together?' : 'Review bids'} subtitle={reviewingJob.title} onClose={closeBids} busy={Boolean(selectingBid)} wide>
+        <div className="bid-summary"><span>{bidsLoading ? 'Loading proposals' : `${reviewBids.length} creator proposals`}</span><strong>Budget {inr(reviewingJob.budgetMin)} – {inr(reviewingJob.budgetMax)}</strong></div>
+        {bidError && <div className="workspace-message workspace-message--error" role="alert">{bidError}{!confirmBid && <button className="btn btn--outline btn--sm" onClick={() => openBids(reviewingJob)}>Retry bids</button>}</div>}
+        {bidsLoading ? <p className="workspace-message" role="status">Finding the ideas behind your next campaign…</p> : confirmBid ? <div className="bid-confirm"><span className="eyebrow">YOUR CHOSEN COLLABORATOR</span><h3>{confirmBid.creator?.name || confirmBid.name || 'Creator'}</h3><strong>{inr(confirmBid.price ?? confirmBid.amount ?? confirmBid.bidAmount)}</strong><p>Confirming creates an order for this proposal. Review the scope with the creator before funding the work. Your account will not be charged by this action.</p><div className="workspace-form__actions"><button className="btn btn--outline" disabled={Boolean(selectingBid)} onClick={() => { setConfirmBid(null); setBidError('') }}>Back to proposals</button><button className="btn btn--dark" disabled={Boolean(selectingBid)} onClick={() => acceptBid(confirmBid)}>{selectingBid ? 'Creating order…' : 'Confirm creator & create order'}</button></div></div> : <div className="bid-list">
+          {reviewBids.map((bid,index) => <article className="bid-card" key={bid.id || index}><div className="bid-card__head">{bid.creator?.image || bid.creator?.avatar ? <img src={bid.creator.image || bid.creator.avatar} alt="" /> : <span className="bid-card__avatar">{(bid.creator?.name || bid.name || 'C').charAt(0)}</span>}<div><h3>{bid.creator?.name || bid.name || 'Creator'}</h3><span>{[bid.creator?.platform, bid.creator?.followers && `${bid.creator.followers} followers`, bid.creator?.location].filter(Boolean).join(' · ') || 'Campaign proposal'}</span></div><strong>{inr(bid.price ?? bid.amount ?? bid.bidAmount)}</strong></div><p>{bid.message || bid.note || bid.creator?.note || 'This creator has submitted a proposal for your campaign.'}</p><div className="bid-card__estimates">{bid.expectedViews != null && <span>Estimated views: {Number(bid.expectedViews).toLocaleString('en-IN')}</span>}{bid.expectedReach != null && <span>Estimated reach: {Number(bid.expectedReach).toLocaleString('en-IN')}</span>}{bid.deliveryDays && <span>Delivery: {bid.deliveryDays} days</span>}</div><div className="bid-card__actions">{bid.creatorId ? <Link className="btn btn--outline btn--sm" to={`/creators/${bid.creatorId}`} state={{ fromBids: `/dashboard/jobs?review=${encodeURIComponent(reviewingJob.id)}` }}>View profile ↗</Link> : <span>Profile unavailable</span>}<button className="btn btn--dark btn--sm" disabled={!bid.id || (bid.status && !['pending','submitted','Pending'].includes(bid.status)) || ['Completed','Closed','In progress'].includes(reviewingJob.status)} onClick={() => { setConfirmBid(bid); setBidError('') }}>{bid.status && !['pending','submitted','Pending'].includes(bid.status) ? bid.status : 'Select creator'}</button></div></article>)}
+          {!reviewBids.length && !bidError && <div className="workspace-empty"><h3>No bids yet.</h3><p>Proposals will appear here when creators apply. You can check back or update your campaign brief.</p><button className="btn btn--outline" onClick={() => { const job = reviewingJob; closeBids(); openEdit(job) }}>Edit campaign brief</button></div>}
+        </div>}
+      </Modal>}
     </div>
   )
 }

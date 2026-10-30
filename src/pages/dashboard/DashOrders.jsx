@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { orderTabs, getCreator } from '../../data/dashboard.js'
-import { approveOrder, getOrders, requestOrderChanges } from '../../api/dashboard.js'
+import { approveOrder, getOrders, getOrder, requestOrderChanges } from '../../api/dashboard.js'
+import Modal from '../../components/Modal.jsx'
 import './dash-pages.css'
 import './DashOrders.css'
 
-const inr = (n) => '₹' + n.toLocaleString('en-IN')
+const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
 
 export default function DashOrders() {
   const navigate = useNavigate()
@@ -15,33 +16,50 @@ export default function DashOrders() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [action, setAction] = useState(null)
+  const [note, setNote] = useState('')
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState('')
+  const [reload, setReload] = useState(0)
+  const isApproval = action?.status === 'Draft submitted' && action?.actionType !== 'revision'
 
   useEffect(() => {
-    getOrders().then((data) => {
+    const controller = new AbortController()
+    setLoading(true); setMessage('')
+    getOrders({ signal: controller.signal }).then((data) => {
+      if (controller.signal.aborted) return
       const next = Array.isArray(data) ? data : data?.results
       const statuses = { in_escrow: 'In escrow', draft_submitted: 'Draft submitted', changes_requested: 'Changes requested', in_progress: 'In progress', released: 'Completed', completed: 'Completed', cancelled: 'Cancelled' }
       setOrders((next || []).map((o) => ({ ...o, creatorId: o.creatorId || o.creator?.id, payment: o.payment || (['released', 'completed'].includes(o.status) ? 'Released' : 'Pending'), status: statuses[o.status] || o.status, statusTone: ['released', 'completed'].includes(o.status) ? 'green' : 'blue' })))
-    }).catch((error) => setMessage(error.message || 'Could not load orders. Please refresh to try again.')).finally(() => setLoading(false))
-  }, [])
+    }).catch((error) => { if (!controller.signal.aborted) setMessage(error.message || 'Could not load orders. Please try again.') }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [reload])
 
-  const orderAction = async (order) => {
+  const openOrder = async order => {
+    setSelected(order); setDetailLoading(true); setDetailError('')
+    try { const detail = await getOrder(order.id); setSelected(current => current?.id === order.id ? { ...current, ...detail, status: current.status } : current) }
+    catch (error) { setDetailError(error.message || 'Could not load the full order details.') }
+    finally { setDetailLoading(false) }
+  }
+
+  const orderAction = async (event) => {
+    event.preventDefault()
+    const order = action
     if (busy) return
     setMessage('')
     setBusy(true)
     try {
-      if (order.status === 'Draft submitted') {
-        if (!window.confirm('Approve this draft and release escrow?')) return
+      if (isApproval) {
         await approveOrder(order.id)
         setOrders((current) => current.map((item) => item.id === order.id ? { ...item, status: 'Completed', statusTone: 'green', payment: 'Released' } : item))
-      } else if (order.status === 'In progress') {
-        const note = window.prompt('What changes should the creator make?')
-        if (!note) return
-        await requestOrderChanges(order.id, note)
-        setMessage('Change request sent.')
       } else {
-        setSelected(order)
+        if (!note.trim()) return
+        await requestOrderChanges(order.id, note.trim())
+        setOrders(current => current.map(item => item.id === order.id ? { ...item, status: 'Changes requested' } : item))
+        setMessage('Change request sent.')
       }
-    } catch (err) { setMessage(err?.message || 'Could not complete this order action.') }
+      setAction(null); setNote('')
+    } catch (err) { setDetailError(err?.message || 'Could not complete this order action.') }
     finally { setBusy(false) }
   }
 
@@ -74,7 +92,8 @@ export default function DashOrders() {
         </div>
       </div>
 
-      {selected && <section className="dcard" style={{ padding: 24, marginBottom: 20 }}><h2>{selected.deliverable}</h2><p className="dpage__sub">{selected.id} · {selected.status} · {selected.payment}</p><p className="dpage__sub">{inr(selected.amount)} · {selected.due}</p><button className="dbtn-ghost" onClick={() => setSelected(null)}>Close details</button></section>}
+      {selected && <Modal title="Your collaboration." subtitle={selected.deliverable || selected.id} onClose={() => setSelected(null)}><div className="workspace-form"><p>{selected.creator?.name || 'Creator'} · {selected.status}</p><div className="booking__total"><span>Order value</span><strong>{inr(selected.amount)}</strong></div><p>Payment: {selected.payment || 'Pending'}</p>{selected.due && <p>{selected.due}</p>}{selected.brief && <p>{selected.brief}</p>}{detailLoading && <p role="status">Loading order details…</p>}{detailError && <div className="workspace-message workspace-message--error" role="alert">{detailError}<button className="btn btn--outline" onClick={() => openOrder(selected)}>Retry details</button></div>}{(selected.contentUrl || selected.url) && <a className="btn btn--dark" href={selected.contentUrl || selected.url} target="_blank" rel="noreferrer">View submitted work ↗</a>}<button className="btn btn--outline" onClick={() => { setSelected(null); navigate('/dashboard/deliverables') }}>Open content library</button>{['Draft submitted','In progress','Changes requested'].includes(selected.status) && <button className="btn btn--dark" onClick={() => { setAction(selected); setSelected(null); setDetailError(''); setNote('') }}>{selected.status === 'Draft submitted' ? 'Review approval' : 'Request changes'}</button>}</div></Modal>}
+      {action && <Modal title={isApproval ? 'Approve this work?' : 'Make room for a revision.'} subtitle={action.deliverable} busy={busy} onClose={() => setAction(null)}><form className="workspace-form" onSubmit={orderAction}><p className="dpage__sub">{isApproval ? `Approval requests release of ${inr(action.amount)} through the payment backend. Confirm only after reviewing the submitted work.` : 'Tell the creator exactly what needs to change.'}</p>{!isApproval && <label>Revision notes<textarea required value={note} maxLength={3000} onChange={event => setNote(event.target.value)} /></label>}{detailError && <p className="workspace-message workspace-message--error" role="alert">{detailError}</p>}<div className="workspace-form__actions"><button type="button" className="btn btn--outline" disabled={busy} onClick={() => setAction(null)}>Cancel</button><button className="btn btn--dark" disabled={busy}>{busy ? 'Saving…' : isApproval ? 'Confirm approval' : 'Send revision request'}</button></div></form></Modal>}
       <div className="orders__stats">
         {orderStats.map((s) => (
           <div className="dstat" key={s.label}>
@@ -87,7 +106,7 @@ export default function DashOrders() {
           </div>
         ))}
       </div>
-      {message && <p className="auth__error">{message}</p>}
+      {message && <div className="workspace-message" role="status">{message}<button className="btn btn--outline btn--sm" onClick={() => setReload(n => n + 1)}>Refresh orders</button></div>}
 
       <div className="dtabrow">
         {orderTabs.map((t) => (
@@ -142,7 +161,9 @@ export default function DashOrders() {
                     <span className={`pill pill--${o.statusTone}`}>{o.status}</span>
                   </td>
                   <td>
-                    <button className="dbtn-ghost" disabled={busy} onClick={() => orderAction(o)}>{o.status === 'Draft submitted' ? 'Approve' : o.status === 'In progress' ? 'Request changes' : 'Open'}</button>
+                    <button className="dbtn-ghost" disabled={busy} onClick={() => openOrder(o)}>Open order</button>
+                    {['Draft submitted','In progress','Changes requested'].includes(o.status) && <button className="dbtn-ghost" disabled={busy} onClick={() => { setAction(o); setDetailError(''); setNote('') }}>{o.status === 'Draft submitted' ? 'Approve' : 'Request changes'}</button>}
+                    {o.status === 'Draft submitted' && <button className="dbtn-ghost" disabled={busy} onClick={() => { setAction({ ...o, actionType:'revision' }); setDetailError(''); setNote('') }}>Request changes</button>}
                   </td>
                 </tr>
               )

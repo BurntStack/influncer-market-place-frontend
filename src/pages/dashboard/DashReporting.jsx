@@ -17,6 +17,8 @@ const PERIOD_MAP = { 'Last 30 days': 'last_30_days', 'Last 3 months': 'last_3_mo
 
 export default function DashReporting() {
   const [period, setPeriod] = useState('Last 6 months')
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
   const [report, setReport] = useState({ reportStats, viewsByMonth, spendByPlatform, reportTopCreators })
 
   useEffect(() => {
@@ -32,7 +34,13 @@ export default function DashReporting() {
   }, [period])
 
   const { reportStats: stats, viewsByMonth: monthlyViews, spendByPlatform: platformSpend, reportTopCreators: creators } = report
-  const exportReport = () => downloadFile(`/reporting/export?period=${encodeURIComponent(PERIOD_MAP[period])}`, 'reporting-export').catch(() => {})
+  const exportReport = async () => {
+    if (exporting) return
+    setExporting(true); setExportError('')
+    try { await downloadFile(`/reporting/export?period=${encodeURIComponent(PERIOD_MAP[period])}`, 'reporting-export.csv') }
+    catch (error) { setExportError(error.message || 'Could not export your report. Please try again.') }
+    finally { setExporting(false) }
+  }
   return (
     <div className="dpage">
       <div className="dpage__head">
@@ -48,10 +56,11 @@ export default function DashReporting() {
             align="right"
             buttonClassName="dbtn-ghost"
           />
-          <button className="btn btn--dark" onClick={exportReport}>⬇ Export CSV</button>
+          <button className="btn btn--dark" disabled={exporting} onClick={exportReport}>{exporting ? 'Exporting…' : 'Export CSV ↗'}</button>
         </div>
       </div>
 
+      {exportError && <p className="workspace-message workspace-message--error" role="alert">{exportError}</p>}
       <div className="dstats report__stats">
         {stats.map((s) => (
           <div className="dstat" key={s.label}>
