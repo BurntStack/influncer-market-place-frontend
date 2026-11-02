@@ -1,96 +1,122 @@
-// Auth state: real token + user session backed by the Collivra API (docs/API.md
-// section 1). The backend issues a Supabase JWT; we keep it (and the user) in
-// localStorage. Token storage itself lives in apiClient.js.
-import { api, getToken, setToken, clearToken } from './apiClient.js'
+import { getToken, setToken, clearToken } from './apiClient.js'
+import { supabase } from './supabaseClient.js'
 
 const USER_KEY = 'collivra_user'
 
-// --- synchronous reads (used by route guards + layout chrome) ---
+// Read the Supabase access token straight from localStorage.
+// Supabase writes it synchronously when createClient processes the OAuth redirect
+// hash, so it's available before any React code runs.
+const readSupabaseToken = () => {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k?.startsWith('sb-') && k.endsWith('-auth-token')) {
+        const raw = localStorage.getItem(k)
+        if (!raw) continue
+        const session = JSON.parse(raw)
+        return session?.access_token || null
+      }
+    }
+  } catch {}
+  return null
+}
 
-export const isAuthed = () => !!getToken()
+export const isAuthed = () => {
+  if (getToken()) return true
+  // After an OAuth redirect Supabase has the session before our listener fires —
+  // read it directly and sync it so RequireAuth doesn't bounce the user.
+  const sbToken = readSupabaseToken()
+  if (sbToken) { setToken(sbToken); return true }
+  return false
+}
 
 export const getUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem(USER_KEY) || 'null')
-  } catch {
-    return null
-  }
+  try { return JSON.parse(localStorage.getItem(USER_KEY) || 'null') } catch { return null }
 }
 
 const setUser = (user) => {
   try {
     if (user) localStorage.setItem(USER_KEY, JSON.stringify(user))
     else localStorage.removeItem(USER_KEY)
-  } catch {
-    /* ignore */
-  }
+  } catch {}
 }
 
-const persistSession = ({ token, user } = {}) => {
-  if (token) setToken(token)
-  if (user) setUser(user)
-}
-
-// Merge local-only profile edits (e.g. onboarding) into the stored user.
-// There is no profile-update endpoint in the contract yet, so these stay
-// client-side; swap for a PATCH /auth/me (or similar) once it exists.
 export const updateLocalUser = (patch) => {
   const next = { ...(getUser() || {}), ...patch }
   setUser(next)
   return next
 }
 
-// --- async auth actions ---
+// --- Supabase session sync ---
 
-export const signup = async ({ name, email, password, companyName }) => {
-  const data = await api.post('/auth/signup', { name, email, password, companyName })
-  persistSession(data)
-  return data
-}
-
-export const requestSignupVerification = (email) => api.post('/auth/signup/email', { email })
-
-export const verifySignupEmail = (email, code) =>
-  api.post('/auth/signup/verify-email', { email, code })
-
-export const completeSignup = async ({ email, verificationToken, password, name, companyName, mobile, category }) => {
-  const data = await api.post('/auth/signup/complete', {
-    email,
-    verificationToken,
-    password,
-    name,
-    ...(companyName ? { companyName } : {}),
-    ...(mobile ? { mobile } : {}),
-    ...(category ? { category } : {}),
+const syncSupabaseSession = (session) => {
+  if (!session) return
+  setToken(session.access_token)
+  const u = session.user
+  const existing = getUser() || {}
+  setUser({
+    ...existing,
+    id: u.id,
+    email: u.email,
+    name: existing.name || u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || '',
+    companyName: existing.companyName || u.user_metadata?.companyName || '',
+    avatar: u.user_metadata?.avatar_url || '',
   })
-  persistSession(data)
-  return data
 }
 
-export const login = async ({ email, password }) => {
-  const data = await api.post('/auth/login', { email, password })
-  persistSession(data)
-  return data
+// Call once at app startup. Returns an unsubscribe function.
+export const setupSupabaseAuthListener = () => {
+  if (!supabase) return () => {}
+
+  // Sync any session that's already in storage (covers page refreshes + OAuth redirects).
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) syncSupabaseSession(session)
+  })
+
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    if (session) syncSupabaseSession(session)
+    if (event === 'SIGNED_OUT') { clearToken(); setUser(null) }
+  })
+
+  return () => subscription.unsubscribe()
 }
 
-export const oauthLogin = async (provider, idToken) => {
-  const data = await api.post(`/auth/oauth/${provider}`, { idToken })
-  persistSession(data)
-  return data
+// --- Mock email auth (swapped for real API calls once Rohith's backend is live) ---
+
+const mockSession = (user) => {
+  setToken('mock-' + Date.now())
+  setUser(user)
+  return { token: getToken(), user }
 }
 
-// Fire-and-forget so existing call sites can stay `logout(); navigate('/')`.
-// We clear locally first, then best-effort invalidate the server session.
+export const requestSignupVerification = async () => ({ message: 'Verification code sent.' })
+
+export const verifySignupEmail = async () => ({ verificationToken: 'mock-token' })
+
+export const completeSignup = async ({ email, name, companyName, mobile, category }) =>
+  mockSession({ id: 'u1', email, name, companyName, mobile, category })
+
+export const signup = async ({ email, name, companyName }) =>
+  mockSession({ id: 'u1', email, name, companyName })
+
+export const login = async ({ email }) => {
+  const name = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  return mockSession({ id: 'u1', email, name })
+}
+
+// OAuth is handled by supabase.auth.signInWithOAuth — this is a no-op fallback.
+export const oauthLogin = async () => {}
+
 export const logout = () => {
-  const hadToken = !!getToken()
   clearToken()
   setUser(null)
-  if (hadToken) api.post('/auth/logout').catch(() => {})
+  supabase?.auth.signOut().catch(() => {})
 }
 
-// Re-fetch the current user (e.g. on app load) and refresh the cached copy.
 export const fetchMe = async () => {
-  const data = await api.get('/auth/me')
-  if (data?.user) setUser(data.user)
-  return data?.user ?? null
+  if (supabase) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) { syncSupabaseSession(session); return getUser() }
+  }
+  return getUser()
 }

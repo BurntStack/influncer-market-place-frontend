@@ -1,50 +1,9 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { completeSignup, login, oauthLogin, requestSignupVerification, verifySignupEmail } from '../../lib/auth.js'
+import { completeSignup, login, requestSignupVerification, verifySignupEmail } from '../../lib/auth.js'
+import { supabase } from '../../lib/supabaseClient.js'
 import './AuthPage.css'
 import './AuthStudio.css'
-
-const loadScript = (src, id) => new Promise((resolve, reject) => {
-  const existing = document.getElementById(id)
-  if (existing) {
-    if (existing.dataset.loaded === 'true') resolve()
-    else existing.addEventListener('load', resolve, { once: true })
-    return
-  }
-  const script = document.createElement('script')
-  script.id = id
-  script.src = src
-  script.async = true
-  script.onload = () => { script.dataset.loaded = 'true'; resolve() }
-  script.onerror = () => reject(new Error('Could not load the sign-in provider.'))
-  document.head.appendChild(script)
-})
-
-const getGoogleIdToken = async () => {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  if (!clientId) throw new Error('Google sign-in is not configured yet.')
-  await loadScript('https://accounts.google.com/gsi/client', 'google-identity-services')
-  return new Promise((resolve, reject) => {
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: ({ credential }) => credential ? resolve(credential) : reject(new Error('Google did not return an identity token.')),
-    })
-    window.google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) reject(new Error('Google sign-in was dismissed. Please try again.'))
-    })
-  })
-}
-
-const getAppleIdToken = async () => {
-  const clientId = import.meta.env.VITE_APPLE_CLIENT_ID
-  if (!clientId) throw new Error('Apple sign-in is not configured yet.')
-  await loadScript('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js', 'apple-identity-services')
-  window.AppleID.auth.init({ clientId, scope: 'name email', redirectURI: window.location.origin, usePopup: true })
-  const response = await window.AppleID.auth.signIn()
-  const idToken = response?.authorization?.id_token
-  if (!idToken) throw new Error('Apple did not return an identity token.')
-  return idToken
-}
 
 const signupCopy = (step, email) => ({
   email: ['Create your account.', 'Start with your email. We’ll verify it before you choose a password.', 'Continue with email'],
@@ -106,14 +65,20 @@ export default function AuthPage({ mode = 'signup' }) {
     setError('')
     setBusy(true)
     try {
-      const idToken = provider === 'google' ? await getGoogleIdToken() : await getAppleIdToken()
-      await oauthLogin(provider, idToken)
-      navigate(location.state?.from || '/dashboard', { replace: true })
+      if (!supabase) throw new Error(`${provider === 'google' ? 'Google' : 'Apple'} sign-in is not configured yet.`)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + (location.state?.from || '/dashboard'),
+        },
+      })
+      if (error) throw error
+      // Browser navigates away — no further action needed here.
     } catch (err) {
       setError(err?.message || `Could not sign in with ${provider}.`)
-    } finally {
       setBusy(false)
     }
+    // Don't set busy=false on success — the page is redirecting.
   }
 
   return (

@@ -2,11 +2,14 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import { setupSupabaseAuthListener } from './lib/auth.js'
 import './styles/global.css'
 import './styles/premium.css'
 import './styles/readability.css'
 import './styles/brand-workspace.css'
 import './styles/buttons.css'
+
+setupSupabaseAuthListener()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
