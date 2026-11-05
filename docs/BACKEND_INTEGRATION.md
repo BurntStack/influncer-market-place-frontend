@@ -36,6 +36,9 @@ the full period. We have asked Rohith to confirm its refresh-token lifetime.
 - An approved OTP test number/code and example authenticated responses for
   end-to-end verification.
 - Confirmation of required values for `usageRights` on campaigns and offers.
+- Email verification request/confirm endpoints and a supported way to save a
+  brand email. The signup form collects email and displays its verification
+  status, but cannot mark it verified without a backend confirmation response.
 
 The public homepage still uses example creator cards because the API requires
 bearer authentication for discovery. Creator profiles remain login-gated.
