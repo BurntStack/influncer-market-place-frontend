@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/prerender.mjs",
+    "test:api": "node scripts/api-client.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.118.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"

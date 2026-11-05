@@ -1,6 +1,7 @@
 import { NavLink, Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { logout, getUser } from '../../lib/auth.js'
 import Dropdown from '../Dropdown.jsx'
+import LogoMark from '../LogoMark.jsx'
 import './DashboardLayout.css'
 
 /* Feather-style SVG icons — stroke="currentColor" so they respond to CSS color */
@@ -96,9 +97,9 @@ export default function DashboardLayout() {
 
   const user = getUser()
   const brand = {
-    name: user?.companyName || user?.name || 'Your brand',
-    initial: (user?.companyName || user?.name || 'Y').charAt(0).toUpperCase(),
-    plan: 'Free plan',
+    name: user?.brandName || user?.companyName || user?.fullName || user?.name || 'Your brand',
+    initial: (user?.brandName || user?.companyName || user?.fullName || user?.name || 'Y').charAt(0).toUpperCase(),
+    plan: 'Brand account',
   }
 
   const userMenu = [
@@ -126,8 +127,8 @@ export default function DashboardLayout() {
       {/* Sidebar (desktop) */}
       <aside className="dside">
         <Link to="/" className="dside__logo">
-          <span className="dside__logo-mark" />
-          XXXXXX
+          <LogoMark className="dside__logo-mark" />
+          LinkLoom
         </Link>
         <Link to="/dashboard/jobs?post=1" className="dside__post">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -178,8 +179,8 @@ export default function DashboardLayout() {
         {/* Mobile top bar */}
         <header className="dtop-mobile">
           <Link to="/" className="dside__logo">
-            <span className="dside__logo-mark" />
-            XXXXXX
+            <LogoMark className="dside__logo-mark" />
+            LinkLoom
           </Link>
           <div className="dtop-mobile__right">
             <button className="dtop__icon" aria-label="Notifications" onClick={() => navigate('/dashboard/account/notifications')}>

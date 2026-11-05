@@ -1,0 +1,10 @@
+export default function LogoMark({ className = '' }) {
+  return (
+    <svg className={`linkloom-mark ${className}`} viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false" style={{ background: 'transparent', borderRadius: 0, boxShadow: 'none' }}>
+      <rect width="36" height="36" rx="10" fill="#DCE8D3" />
+      <path d="M14.25 22.75 11.9 25.1a5.25 5.25 0 0 1-7.42-7.42l5.95-5.95a5.25 5.25 0 0 1 7.42 0" stroke="#20332D" strokeWidth="3.6" strokeLinecap="round" />
+      <path d="m21.75 13.25 2.35-2.35a5.25 5.25 0 0 1 7.42 7.42l-5.95 5.95a5.25 5.25 0 0 1-7.42 0" stroke="#20332D" strokeWidth="3.6" strokeLinecap="round" />
+      <path d="m12.8 23.2 10.4-10.4" stroke="#20332D" strokeWidth="3.6" strokeLinecap="round" />
+    </svg>
+  )
+}

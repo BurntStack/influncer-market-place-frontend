@@ -7,13 +7,8 @@ import './dash-pages.css'
 import './DashSearch.css'
 
 const FILTERS = [
-  { key: 'content', label: 'Content type', options: ['Reels', 'Posts', 'Stories', 'UGC', 'YouTube'] },
-  { key: 'followers', label: 'Followers', options: ['1k–10k', '10k–100k', '100k–500k', '500k+'] },
   { key: 'location', label: 'Location', options: ['Bengaluru', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad'] },
   { key: 'price', label: 'Price', options: ['Under ₹5,000', '₹5,000–₹10,000', '₹10,000–₹20,000', '₹20,000+'] },
-  { key: 'gender', label: 'Gender', options: ['Any', 'Female', 'Male'] },
-  { key: 'age', label: 'Age', options: ['18–24', '25–34', '35–44'] },
-  { key: 'language', label: 'Language', options: ['Hindi', 'English', 'Tamil', 'Telugu', 'Kannada'] },
 ]
 
 export default function DashSearch() {
@@ -89,16 +84,6 @@ export default function DashSearch() {
 
       <div className="dsearch__meta">
         <span>{loading ? 'Loading creators…' : `Showing ${total ? (page - 1) * 8 + 1 : 0}–${Math.min(page * 8, total)} of ${total.toLocaleString()} creators`}</span>
-        <span className="dsearch__sort">
-          Sort:
-          <Dropdown
-            value={sort}
-            options={['Recommended', 'Price: low to high', 'Price: high to low', 'Most followers']}
-            onChange={setSort}
-            align="right"
-            buttonClassName="dsearch__sort-dd"
-          />
-        </span>
       </div>
 
       <div className="dcreator-grid">

@@ -1,6 +1,24 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/creators", "destination": "/creators/index.html" },
+    { "source": "/creators/:id", "destination": "/spa.html" },
+    { "source": "/login", "destination": "/spa.html" },
+    { "source": "/signup", "destination": "/spa.html" },
+    { "source": "/choose-role", "destination": "/spa.html" },
+    { "source": "/onboarding", "destination": "/spa.html" },
+    { "source": "/creator/workspace", "destination": "/spa.html" },
+    { "source": "/dashboard", "destination": "/spa.html" },
+    { "source": "/dashboard/:path*", "destination": "/spa.html" }
+  ],
+  "headers": [
+    { "source": "/creators/:id", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/login", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/signup", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/choose-role", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/onboarding", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/creator/workspace", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/dashboard", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/dashboard/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] }
   ]
 }

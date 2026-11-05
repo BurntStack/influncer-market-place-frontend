@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { getCreator } from '../../data/dashboard.js'
 import { getDeliverables, getDeliverable, getCampaigns } from '../../api/dashboard.js'
 import Modal from '../../components/Modal.jsx'
-import { downloadFile } from '../../lib/apiClient.js'
 import Dropdown from '../../components/Dropdown.jsx'
 import './dash-pages.css'
 import './DashDeliverables.css'
@@ -19,20 +18,12 @@ export default function DashDeliverables() {
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [exporting, setExporting] = useState(false)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [reload, setReload] = useState(0)
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
   const setFilter = (key, value) => setFilters((f) => ({ ...f, [key]: value }))
-  const downloadAll = async () => {
-    if (exporting) return
-    setExporting(true); setError('')
-    try { await downloadFile('/deliverables/export', 'deliverables-export') }
-    catch (err) { setError(err.message || 'Could not download your content. Please try again.') }
-    finally { setExporting(false) }
-  }
   const openContent = async item => {
     setSelected(item); setDetailLoading(true); setDetailError('')
     try { const detail = await getDeliverable(item.id); setSelected(current => current?.id === item.id ? { ...current, ...detail, job: detail.job?.title || detail.job || current.job } : current) }
@@ -67,7 +58,7 @@ export default function DashDeliverables() {
           <p className="dpage__sub">See all your delivered content in one place.</p>
         </div>
         <div className="dpage__actions">
-          <button className="btn btn--outline" disabled={exporting} onClick={downloadAll}>{exporting ? 'Downloading…' : 'Download all ↗'}</button>
+          <button className="btn btn--outline" disabled title="Export is not available from the backend yet">Download all coming soon</button>
         </div>
       </div>
 

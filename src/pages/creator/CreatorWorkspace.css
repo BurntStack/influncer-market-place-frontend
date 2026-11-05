@@ -1,0 +1,2 @@
+.creator-workspace { min-height:100dvh; display:grid; place-items:center; background:#f6f5f0; color:#20332d; text-align:center; padding:24px; }
+.creator-workspace h1 { font-size:clamp(40px,7vw,72px); font-weight:600; letter-spacing:-.055em; }

@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react'
-import { lists as mockLists, getCreator } from '../../data/dashboard.js'
-import { createList, deleteList, duplicateList, getLists, renameList } from '../../api/dashboard.js'
+import { createList, deleteList, duplicateList, getList, getLists, renameList } from '../../api/dashboard.js'
 import Dropdown from '../../components/Dropdown.jsx'
 import './dash-pages.css'
 import './DashLists.css'
 
 export default function DashLists() {
-  const [lists, setLists] = useState(mockLists)
+  const [lists, setLists] = useState([])
   const [selected, setSelected] = useState(null)
+  const [error, setError] = useState('')
   useEffect(() => {
     getLists().then((data) => {
       const next = Array.isArray(data) ? data : data?.results
-      if (next?.length) setLists(next)
-    }).catch(() => {})
+      setLists(next || [])
+    }).catch(err => setError(err.message || 'Could not load your lists.'))
   }, [])
 
   const create = async () => {
@@ -20,28 +20,34 @@ export default function DashLists() {
     if (!name?.trim()) return
     try {
       const created = await createList({ name: name.trim() })
-      setLists((current) => [...current, created || { id: `local-${Date.now()}`, name: name.trim(), count: 0, covers: [] }])
-    } catch { setLists((current) => [...current, { id: `local-${Date.now()}`, name: name.trim(), count: 0, covers: [] }]) }
+      setLists((current) => [...current, created])
+    } catch (err) { setError(err.message || 'Could not create the list.') }
   }
 
   const rename = async (list) => {
     const name = window.prompt('New list name', list.name)
     if (!name?.trim() || name === list.name) return
-    try { await renameList(list.id, { name: name.trim() }) } catch {}
-    setLists((current) => current.map((item) => item.id === list.id ? { ...item, name: name.trim() } : item))
+    try { await renameList(list.id, { name: name.trim() }); setLists((current) => current.map((item) => item.id === list.id ? { ...item, name: name.trim() } : item)) }
+    catch (err) { setError(err.message || 'Could not rename the list.') }
   }
 
   const duplicate = async (list) => {
     try {
       const copy = await duplicateList(list.id)
-      setLists((current) => [...current, copy || { ...list, id: `local-${Date.now()}`, name: `${list.name} copy` }])
-    } catch { setLists((current) => [...current, { ...list, id: `local-${Date.now()}`, name: `${list.name} copy` }]) }
+      setLists((current) => [...current, copy])
+    } catch (err) { setError(err.message || 'Could not duplicate the list.') }
   }
 
   const remove = async (list) => {
     if (!window.confirm(`Delete “${list.name}”?`)) return
-    try { await deleteList(list.id) } catch {}
-    setLists((current) => current.filter((item) => item.id !== list.id))
+    try { await deleteList(list.id); setLists((current) => current.filter((item) => item.id !== list.id)) }
+    catch (err) { setError(err.message || 'Could not delete the list.') }
+  }
+
+  const openList = async list => {
+    setError('')
+    try { setSelected(await getList(list.id)) }
+    catch (err) { setError(err.message || 'Could not open this list.') }
   }
 
   return (
@@ -55,12 +61,13 @@ export default function DashLists() {
           <button className="btn btn--dark" onClick={create}>+ Create a list</button>
         </div>
       </div>
+      {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
 
-      {selected && <section className="dcard" style={{ padding: 24, marginBottom: 20 }}><h2>{selected.name}</h2><p className="dpage__sub">Saved creators</p>{(selected.covers || []).map(getCreator).filter(Boolean).map((creator) => <a key={creator.id} className="dside__link" href={`/creators/${creator.id}`}>{creator.name} →</a>)}{!selected.covers?.length && <p>No creators saved yet. Find creators to build your shortlist.</p>}<button className="dbtn-ghost" onClick={() => setSelected(null)}>Close list</button></section>}
+      {selected && <section className="dcard" style={{ padding: 24, marginBottom: 20 }}><h2>{selected.name}</h2><p className="dpage__sub">Saved creators</p>{(selected.creators || []).map(item => item.creator || item).map(item => typeof item === 'string' ? { id: item } : item).map(creator => <a key={creator.id || creator.creatorId} className="dside__link" href={`/creators/${creator.id || creator.creatorId}`}>{creator.name || creator.displayName || 'View creator'} →</a>)}{!selected.creators?.length && <p>No creators saved yet. Find creators to build your shortlist.</p>}<button className="dbtn-ghost" onClick={() => setSelected(null)}>Close list</button></section>}
       <div className="lists__grid">
         {lists.map((list) => {
-          const covers = (list.covers || []).map((cover) => typeof cover === 'string' && cover.startsWith('http') ? { image: cover } : getCreator(cover)).filter(Boolean)
-          while (covers.length < 3) covers.push(covers[0] || { image: '' })
+          const covers = (list.creators || []).map(item => item.creator || item).map(item => ({ image: item.image || item.avatarUrl })).filter(item => item.image)
+          while (covers.length < 3) covers.push(covers[0] || { image: '/favicon.svg' })
           return (
             <article className="listcard" key={list.id}>
               <div className="listcard__collage">
@@ -80,7 +87,7 @@ export default function DashLists() {
                   buttonClassName="listcard__menu"
                   trigger="•••"
                   options={[
-                    { label: 'Open list', onClick: () => setSelected(list) },
+                    { label: 'Open list', onClick: () => openList(list) },
                     { label: 'Rename', onClick: () => rename(list) },
                     { label: 'Duplicate', onClick: () => duplicate(list) },
                     { label: 'Delete', danger: true, onClick: () => remove(list) },

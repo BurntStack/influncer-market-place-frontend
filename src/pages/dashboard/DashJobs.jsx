@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams, useNavigate } from 'react-router-dom'
-import { jobTabs, getCreator } from '../../data/dashboard.js'
+import { jobTabs } from '../../data/dashboard.js'
 import Modal from '../../components/Modal.jsx'
 import { createCampaign, getCampaigns, updateCampaign, getCampaignBids, selectCampaignBid } from '../../api/dashboard.js'
 import './dash-pages.css'
@@ -8,7 +8,7 @@ import './DashJobs.css'
 
 const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
 
-const emptyForm = { title: '', platform: 'Instagram', deliverables: '', budgetMin: '', budgetMax: '', applyBy: '', brief: '' }
+const emptyForm = { title: '', platform: 'Instagram', deliverables: '', budgetMin: '', budgetMax: '', applyBy: '', brief: '', usageRights: '' }
 const normalizeJob = job => {
   const statuses = { open_for_bids: 'Open for bids', in_progress: 'In progress', awarded: 'In progress', completed: 'Completed', closed: 'Closed', draft: 'Draft' }
   const status = statuses[job.status] || job.status || 'Open for bids'
@@ -62,7 +62,7 @@ export default function DashJobs() {
     setForm({
       title: job.title || '', platform: job.platform || (job.meta?.split(' · ')[0] || 'Instagram'),
       deliverables: job.deliverables || (job.meta?.split(' · ')[1] || ''), budgetMin: job.budgetMin || '',
-      budgetMax: job.budgetMax || '', applyBy: (job.applyBy || '').slice(0,10), brief: job.brief || '',
+      budgetMax: job.budgetMax || '', applyBy: (job.applyBy || '').slice(0,10), brief: job.brief || '', usageRights: job.usageRights || '',
     })
     setFormError(''); setFieldErrors({}); setShowForm(true); setSearchParams({ post: '1' })
   }
@@ -76,7 +76,7 @@ export default function DashJobs() {
       const data = await getCampaignBids(job.id)
       if (requestId !== bidRequest.current) return
       const bids = Array.isArray(data) ? data : data?.results || []
-      setReviewBids(bids.map(bid => ({ ...bid, creator: bid.creator || getCreator(bid.creatorId), creatorId: bid.creator?.id || bid.creatorId })))
+      setReviewBids(bids.map(bid => ({ ...bid, creatorId: bid.creator?.id || bid.creatorId })))
     } catch (error) { if (requestId === bidRequest.current) setBidError(error.message || 'Could not load bids. Please try again.') }
     finally { if (requestId === bidRequest.current) setBidsLoading(false) }
   }
@@ -122,6 +122,9 @@ export default function DashJobs() {
     const errors = {}
     if (!form.title.trim()) errors.title = 'Add a clear job title.'
     if (!form.deliverables.trim()) errors.deliverables = 'Add at least one deliverable.'
+    if (!form.brief.trim()) errors.brief = 'Add a campaign brief.'
+    if (!form.applyBy) errors.applyBy = 'Choose a closing date.'
+    if (!form.usageRights.trim()) errors.usageRights = 'Describe the usage rights.'
     if (!form.budgetMin || Number(form.budgetMin) < 1) errors.budgetMin = 'Enter a minimum budget.'
     if (!form.budgetMax || Number(form.budgetMax) < 1) errors.budgetMax = 'Enter a maximum budget.'
     if (Number(form.budgetMin) > Number(form.budgetMax)) errors.budgetMax = 'Maximum must be higher than minimum.'
@@ -199,6 +202,8 @@ export default function DashJobs() {
                 <label>Maximum budget {input('budgetMax', { type: 'number', min: '1', placeholder: '₹ 15,000' })}</label>
               </div>
               <label>Brief <div className="jobform__field"><textarea value={form.brief} onChange={(event) => updateField('brief', event.target.value)} placeholder="Share the product, audience, tone, dos and don'ts…" rows="5" maxLength="1000" /><span className="jobform__hint">{form.brief.length}/1000</span></div></label>
+              {fieldErrors.brief && <span className="jobform__error">{fieldErrors.brief}</span>}
+              <label>Usage rights {input('usageRights', { placeholder: 'e.g. Organic social media for 6 months' })}</label>
             </section>
           </div>
           <div className="jobcomposer__foot">
@@ -229,8 +234,8 @@ export default function DashJobs() {
         {loadError && <div className="workspace-message workspace-message--error" role="alert">{loadError} <button className="btn btn--outline btn--sm" onClick={() => setReload(n => n + 1)}>Try again</button></div>}
         {!loading && !loadError && !visible.length && <div className="workspace-empty"><h3>{tab === 'all' ? 'Your next story starts here.' : 'No campaigns in this view.'}</h3><p>Post a brief, set your budget, and invite fresh ideas from creators.</p><button className="btn btn--dark" onClick={openComposer}>Post a campaign ↗</button></div>}
         {visible.map((j) => {
-          const bidders = (j.bidders || []).map(item => typeof item === 'object' ? item : getCreator(item)).filter(Boolean)
-          const hired = typeof j.hired === 'object' ? j.hired : j.hired ? getCreator(j.hired) : null
+          const bidders = (j.bidders || []).filter(item => item && typeof item === 'object')
+          const hired = j.hired && typeof j.hired === 'object' ? j.hired : null
           return (
             <article className="jobcard-row dcard" key={j.id}>
               <div className="jobcard-row__top">
@@ -250,7 +255,7 @@ export default function DashJobs() {
                   <div className="jobcard-row__bids">
                     <span className="davatars">
                       {bidders.map((b) => (
-                        <img key={b.id} src={b.image} alt="" />
+                        <img key={b.id} src={b.image || b.avatarUrl} alt="" />
                       ))}
                     </span>
                     {j.bids} bids

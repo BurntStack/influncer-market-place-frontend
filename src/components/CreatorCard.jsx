@@ -10,7 +10,7 @@ export default function CreatorCard({ creator }) {
   const toggleSave = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    toggleFavorite(creator)
+    toggleFavorite(creator).catch(error => window.alert(error.message))
   }
   return (
     <Link to={`/creators/${creator.id}`} className="ccard">

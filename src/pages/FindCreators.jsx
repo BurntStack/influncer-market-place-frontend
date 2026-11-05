@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { listCreators, getFilters } from '../api/creators.js'
+import { creators as examples } from '../data/creators.js'
 import CreatorCard from '../components/CreatorCard.jsx'
 import Dropdown from '../components/Dropdown.jsx'
 import './FindCreators.css'
@@ -39,7 +40,7 @@ const bucketFor = (buckets, parts) =>
     Object.entries(parts).every(([k, v]) => String(buckets[label][k] ?? '') === String(v ?? '')),
   )
 
-// Static fallbacks used until GET /creators/filters responds (or if it fails).
+// Filter choices for the fields supported by the current API.
 const FALLBACK_FILTERS = {
   platforms: ['Instagram', 'YouTube', 'Facebook', 'X', 'LinkedIn'],
   cities: ['Bengaluru', 'Mumbai', 'Delhi NCR', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata'],
@@ -49,7 +50,6 @@ const FALLBACK_FILTERS = {
 
 export default function FindCreators() {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
 
   const [platform, setPlatform] = useState('All')
   const [query, setQuery] = useState('')
@@ -59,8 +59,8 @@ export default function FindCreators() {
   const [page, setPage] = useState(1)
 
   const [options, setOptions] = useState(FALLBACK_FILTERS)
-  const [data, setData] = useState({ results: [], total: 0, totalPages: 1 })
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState({ results: examples, total: examples.length, totalPages: 1 })
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const setFilter = (key, value) => {
@@ -151,13 +151,8 @@ export default function FindCreators() {
   const secondHalf = results.slice(4)
 
   const FILTER_CHIPS = [
-    { key: 'content', label: 'Content type', opts: ['Reels', 'Posts', 'Stories', 'UGC'] },
-    { key: 'followers', label: 'Followers', opts: Object.keys(FOLLOWER_BUCKETS) },
     { key: 'city', label: 'City', opts: options.cities },
     { key: 'price', label: 'Price', opts: Object.keys(PRICE_BUCKETS) },
-    { key: 'gender', label: 'Gender', opts: ['Any', 'Female', 'Male'] },
-    { key: 'age', label: 'Age', opts: ['18–24', '25–34', '35–44'] },
-    { key: 'language', label: 'Language', opts: options.languages },
   ]
 
   const pageList = useMemo(() => {
@@ -220,19 +215,6 @@ export default function FindCreators() {
             />
           ))}
         </div>
-        <div className="find__sort">
-          Sort:
-          <Dropdown
-            value={sort}
-            options={SORT_OPTIONS}
-            onChange={(v) => {
-              setSort(v)
-              setPage(1)
-            }}
-            align="right"
-            buttonClassName="find__sort-dd"
-          />
-        </div>
       </div>
 
       {/* Results */}
@@ -255,9 +237,9 @@ export default function FindCreators() {
               <h3>Can’t pick? Let creators come to you.</h3>
               <p>Post a campaign brief and get proposals from matching creators within 24 hours.</p>
             </div>
-            <button className="btn btn--primary" onClick={() => navigate('/dashboard/jobs?post=1')}>
+            <Link className="btn btn--primary" to="/dashboard/jobs?post=1">
               Post a campaign
-            </button>
+            </Link>
           </div>
 
           {secondHalf.length > 0 && (

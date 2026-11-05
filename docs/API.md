@@ -1,4 +1,8 @@
-# API Specification — Creator Marketplace (Brand side)
+# Legacy API Specification — Creator Marketplace (Brand side)
+
+> This is the original frontend proposal and does not describe the current
+> Collab API. Use [BACKEND_INTEGRATION.md](./BACKEND_INTEGRATION.md) for the
+> active backend contract.
 
 > Contract required by the React frontend. Request/response field names match
 > what the UI already consumes, so no translation layer is needed on either end.

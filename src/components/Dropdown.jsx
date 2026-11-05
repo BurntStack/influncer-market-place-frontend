@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import './Dropdown.css'
 
+const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
 /**
  * Reusable dropdown / menu.
  * - Value-select mode: pass `value` + `onChange` and string `options`.
@@ -47,7 +49,7 @@ export default function Dropdown({
     })
   }
 
-  useLayoutEffect(() => {
+  useBrowserLayoutEffect(() => {
     if (open) place()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { orderTabs, getCreator } from '../../data/dashboard.js'
+import { orderTabs } from '../../data/dashboard.js'
 import { approveOrder, getOrders, getOrder, requestOrderChanges } from '../../api/dashboard.js'
 import Modal from '../../components/Modal.jsx'
 import './dash-pages.css'
 import './DashOrders.css'
 
 const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN')
+const canAction = (order, ...names) => (order?.allowedActions || []).some(action => names.includes(String(action).replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase().replace(/[-\s]/g, '_')))
 
 export default function DashOrders() {
   const navigate = useNavigate()
@@ -21,7 +22,7 @@ export default function DashOrders() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [reload, setReload] = useState(0)
-  const isApproval = action?.status === 'Draft submitted' && action?.actionType !== 'revision'
+  const isApproval = action?.actionType === 'approve'
 
   useEffect(() => {
     const controller = new AbortController()
@@ -51,14 +52,12 @@ export default function DashOrders() {
     try {
       if (isApproval) {
         await approveOrder(order.id)
-        setOrders((current) => current.map((item) => item.id === order.id ? { ...item, status: 'Completed', statusTone: 'green', payment: 'Released' } : item))
       } else {
         if (!note.trim()) return
         await requestOrderChanges(order.id, note.trim())
-        setOrders(current => current.map(item => item.id === order.id ? { ...item, status: 'Changes requested' } : item))
         setMessage('Change request sent.')
       }
-      setAction(null); setNote('')
+      setAction(null); setNote(''); setReload(n => n + 1)
     } catch (err) { setDetailError(err?.message || 'Could not complete this order action.') }
     finally { setBusy(false) }
   }
@@ -84,7 +83,7 @@ export default function DashOrders() {
         <div>
           <h1 className="dpage__title">Orders</h1>
           <p className="dpage__sub">
-            Every package you’ve bought. Your money stays in escrow until you approve the work.
+            Follow your collaborations and review submitted work.
           </p>
         </div>
         <div className="dpage__actions">
@@ -92,7 +91,7 @@ export default function DashOrders() {
         </div>
       </div>
 
-      {selected && <Modal title="Your collaboration." subtitle={selected.deliverable || selected.id} onClose={() => setSelected(null)}><div className="workspace-form"><p>{selected.creator?.name || 'Creator'} · {selected.status}</p><div className="booking__total"><span>Order value</span><strong>{inr(selected.amount)}</strong></div><p>Payment: {selected.payment || 'Pending'}</p>{selected.due && <p>{selected.due}</p>}{selected.brief && <p>{selected.brief}</p>}{detailLoading && <p role="status">Loading order details…</p>}{detailError && <div className="workspace-message workspace-message--error" role="alert">{detailError}<button className="btn btn--outline" onClick={() => openOrder(selected)}>Retry details</button></div>}{(selected.contentUrl || selected.url) && <a className="btn btn--dark" href={selected.contentUrl || selected.url} target="_blank" rel="noreferrer">View submitted work ↗</a>}<button className="btn btn--outline" onClick={() => { setSelected(null); navigate('/dashboard/deliverables') }}>Open content library</button>{['Draft submitted','In progress','Changes requested'].includes(selected.status) && <button className="btn btn--dark" onClick={() => { setAction(selected); setSelected(null); setDetailError(''); setNote('') }}>{selected.status === 'Draft submitted' ? 'Review approval' : 'Request changes'}</button>}</div></Modal>}
+      {selected && <Modal title="Your collaboration." subtitle={selected.deliverable || selected.id} onClose={() => setSelected(null)}><div className="workspace-form"><p>{selected.creator?.name || 'Creator'} · {selected.status}</p><div className="booking__total"><span>Order value</span><strong>{inr(selected.amount)}</strong></div><p>Payment: {selected.payment || 'Pending'}</p>{selected.due && <p>{selected.due}</p>}{selected.brief && <p>{selected.brief}</p>}{detailLoading && <p role="status">Loading order details…</p>}{detailError && <div className="workspace-message workspace-message--error" role="alert">{detailError}<button className="btn btn--outline" onClick={() => openOrder(selected)}>Retry details</button></div>}{(selected.contentUrl || selected.url) && <a className="btn btn--dark" href={selected.contentUrl || selected.url} target="_blank" rel="noreferrer">View submitted work ↗</a>}<button className="btn btn--outline" onClick={() => { setSelected(null); navigate('/dashboard/deliverables') }}>Open content library</button>{canAction(selected, 'approve') && <button className="btn btn--dark" onClick={() => { setAction({ ...selected, actionType: 'approve' }); setSelected(null); setDetailError('') }}>Review approval</button>}{canAction(selected, 'request_revision', 'request_changes', 'revision') && <button className="btn btn--outline" onClick={() => { setAction({ ...selected, actionType: 'revision' }); setSelected(null); setDetailError(''); setNote('') }}>Request changes</button>}</div></Modal>}
       {action && <Modal title={isApproval ? 'Approve this work?' : 'Make room for a revision.'} subtitle={action.deliverable} busy={busy} onClose={() => setAction(null)}><form className="workspace-form" onSubmit={orderAction}><p className="dpage__sub">{isApproval ? `Approval requests release of ${inr(action.amount)} through the payment backend. Confirm only after reviewing the submitted work.` : 'Tell the creator exactly what needs to change.'}</p>{!isApproval && <label>Revision notes<textarea required value={note} maxLength={3000} onChange={event => setNote(event.target.value)} /></label>}{detailError && <p className="workspace-message workspace-message--error" role="alert">{detailError}</p>}<div className="workspace-form__actions"><button type="button" className="btn btn--outline" disabled={busy} onClick={() => setAction(null)}>Cancel</button><button className="btn btn--dark" disabled={busy}>{busy ? 'Saving…' : isApproval ? 'Confirm approval' : 'Send revision request'}</button></div></form></Modal>}
       <div className="orders__stats">
         {orderStats.map((s) => (
@@ -136,7 +135,7 @@ export default function DashOrders() {
           <tbody>
             {!visible.length && <tr><td colSpan="7">{loading ? 'Loading your orders…' : 'No orders in this view. Select a creator bid to start an order.'}</td></tr>}
             {visible.map((o) => {
-              const c = getCreator(o.creatorId) || o.creator || { image: '', name: 'Creator' }
+              const c = o.creator || { image: '', name: 'Creator' }
               const payTone = o.payment === 'Released' ? 'green' : 'yellow'
               return (
                 <tr key={o.id}>
@@ -146,7 +145,7 @@ export default function DashOrders() {
                   </td>
                   <td>
                     <div className="dcell-creator">
-                      <img src={c.image} alt="" />
+                      {(c.image || c.avatarUrl) && <img src={c.image || c.avatarUrl} alt="" />}
                       {c.name}
                     </div>
                   </td>
@@ -162,8 +161,8 @@ export default function DashOrders() {
                   </td>
                   <td>
                     <button className="dbtn-ghost" disabled={busy} onClick={() => openOrder(o)}>Open order</button>
-                    {['Draft submitted','In progress','Changes requested'].includes(o.status) && <button className="dbtn-ghost" disabled={busy} onClick={() => { setAction(o); setDetailError(''); setNote('') }}>{o.status === 'Draft submitted' ? 'Approve' : 'Request changes'}</button>}
-                    {o.status === 'Draft submitted' && <button className="dbtn-ghost" disabled={busy} onClick={() => { setAction({ ...o, actionType:'revision' }); setDetailError(''); setNote('') }}>Request changes</button>}
+                    {canAction(o, 'approve') && <button className="dbtn-ghost" disabled={busy} onClick={() => { setAction({ ...o, actionType: 'approve' }); setDetailError('') }}>Approve</button>}
+                    {canAction(o, 'request_revision', 'request_changes', 'revision') && <button className="dbtn-ghost" disabled={busy} onClick={() => { setAction({ ...o, actionType:'revision' }); setDetailError(''); setNote('') }}>Request changes</button>}
                   </td>
                 </tr>
               )

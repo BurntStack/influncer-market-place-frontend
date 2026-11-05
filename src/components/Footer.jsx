@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import LogoMark from './LogoMark.jsx'
 import './Footer.css'
 
 const COLUMNS = [
@@ -26,8 +27,8 @@ export default function Footer() {
       <div className="container footer__grid">
         <div className="footer__brand">
           <Link to="/" className="footer__logo">
-            <span className="footer__logo-mark" />
-            XXXXXX
+            <LogoMark className="footer__logo-mark" />
+            LinkLoom
           </Link>
           <p>
             The simplest way for Indian brands to hire creators, approve content
@@ -50,7 +51,7 @@ export default function Footer() {
       </div>
 
       <div className="container footer__bottom">
-        <span>© {new Date().getFullYear()} xxxxxx. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} LinkLoom. All rights reserved.</span>
         <div className="footer__legal">
           <Link to="/#brands">How hiring works</Link>
           <Link to="/dashboard/orders">Manage orders</Link>

@@ -20,7 +20,7 @@ const STEPS = [
   },
   {
     icon: '🛡️',
-    title: 'xxxxxx holds the money',
+    title: 'LinkLoom holds the money',
     body: 'Your payment stays safe in escrow while the creator makes and posts the content.',
   },
   {

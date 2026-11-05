@@ -7,7 +7,8 @@ import Home from './pages/Home.jsx'
 import FindCreators from './pages/FindCreators.jsx'
 import CreatorProfile from './pages/CreatorProfile.jsx'
 import AuthPage from './pages/auth/AuthPage.jsx'
-import OnboardingPage from './pages/onboarding/OnboardingPage.jsx'
+import ChooseRolePage from './pages/auth/ChooseRolePage.jsx'
+import CreatorWorkspace from './pages/creator/CreatorWorkspace.jsx'
 import DashHome from './pages/dashboard/DashHome.jsx'
 import DashSearch from './pages/dashboard/DashSearch.jsx'
 import DashLists from './pages/dashboard/DashLists.jsx'
@@ -41,11 +42,13 @@ export default function App() {
         {/* Auth */}
         <Route path="/login" element={<AuthPage mode="login" />} />
         <Route path="/signup" element={<AuthPage mode="signup" />} />
+        <Route path="/choose-role" element={<RequireAuth><ChooseRolePage /></RequireAuth>} />
+        <Route path="/creator/workspace" element={<RequireAuth role="creator"><CreatorWorkspace /></RequireAuth>} />
         <Route
           path="/onboarding"
           element={
-            <RequireAuth>
-              <OnboardingPage />
+            <RequireAuth role="brand">
+              <Navigate to="/dashboard/account/brands" replace />
             </RequireAuth>
           }
         />
@@ -54,14 +57,14 @@ export default function App() {
         <Route
           path="/dashboard"
           element={
-            <RequireAuth>
+            <RequireAuth role="brand">
               <DashboardLayout />
             </RequireAuth>
           }
         >
           <Route index element={<DashHome />} />
           <Route path="search" element={<DashSearch />} />
-          <Route path="lists" element={<Navigate to="/dashboard/favorites" replace />} />
+          <Route path="lists" element={<DashLists />} />
           <Route path="favorites" element={<DashFavorites />} />
           <Route path="jobs" element={<DashJobs />} />
           <Route path="deliverables" element={<DashDeliverables />} />

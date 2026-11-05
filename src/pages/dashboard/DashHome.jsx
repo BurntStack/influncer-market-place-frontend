@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getSummary } from '../../api/dashboard.js'
 import { getUser } from '../../lib/auth.js'
-import { homeStats, topCreators as mockTopCreators } from '../../data/dashboard.js'
 import DashCreatorCard from '../../components/dashboard/DashCreatorCard.jsx'
 import './dash-pages.css'
 import './DashHome.css'
@@ -11,10 +10,11 @@ import './DashHome.css'
 const isGreen = (sub = '') => /^\+|100%|on time/i.test(sub)
 
 export default function DashHome() {
-  const [greeting, setGreeting] = useState(getUser()?.companyName || getUser()?.name || 'your workspace')
-  const [stats, setStats] = useState(homeStats)
-  const [creators, setCreators] = useState(mockTopCreators)
+  const [greeting, setGreeting] = useState(getUser()?.brandName || getUser()?.fullName || getUser()?.name || 'your workspace')
+  const [stats, setStats] = useState([])
+  const [creators, setCreators] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     let active = true
@@ -25,7 +25,7 @@ export default function DashHome() {
         if (data.stats?.length) setStats(data.stats)
         if (data.topCreators?.length) setCreators(data.topCreators)
       })
-      .catch(() => {}) // keep mock fallback
+      .catch(err => { if (active) setError(err.message || 'Could not load your dashboard.') })
       .finally(() => active && setLoading(false))
     return () => {
       active = false
@@ -35,6 +35,7 @@ export default function DashHome() {
   return (
     <div className="dpage brand-overview">
       <div className="workspace-welcome"><div><span className="eyebrow">YOUR CREATIVE WORKSPACE</span><h1 className="dhome__greeting">Welcome back, {greeting}.</h1><p className="dpage__sub">A little direction. A lot of possibility.</p></div><Link className="btn btn--primary" to="/dashboard/jobs?post=1">Post a campaign ↗</Link></div>
+      {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
 
       {/* Stats */}
       <div className="dstats dhome__stats">

@@ -1,8 +1,9 @@
-// Example identities for the interactive campaign demo; no frontend photography.
+// Example identities and local demo portraits for the interactive campaign demo.
 
 export const creators = [
   {
     id: 'ananya-rao',
+    image: '/creators/ananya-rao.webp',
     name: 'Ananya Rao',
     category: 'Beauty, Skincare',
     location: 'Bengaluru',
@@ -16,6 +17,7 @@ export const creators = [
   },
   {
     id: 'rohan-mehta',
+    image: '/creators/rohan-mehta.webp',
     name: 'Rohan Mehta',
     category: 'Tech, Gadgets',
     location: 'Mumbai',
@@ -28,6 +30,7 @@ export const creators = [
   },
   {
     id: 'meera-iyer',
+    image: '/creators/meera-iyer.webp',
     name: 'Meera Iyer',
     category: 'Lifestyle, Travel',
     location: 'Chennai',
@@ -40,6 +43,7 @@ export const creators = [
   },
   {
     id: 'kabir-singh',
+    image: '/creators/kabir-singh.webp',
     name: 'Kabir Singh',
     category: 'Fitness, Health',
     location: 'Delhi',
@@ -52,6 +56,7 @@ export const creators = [
   },
   {
     id: 'sana-qureshi',
+    image: '/creators/sana-qureshi.webp',
     name: 'Sana Qureshi',
     category: 'Fashion, Modest wear',
     location: 'Hyderabad',
@@ -64,6 +69,7 @@ export const creators = [
   },
   {
     id: 'priya-nair',
+    image: '/creators/priya-nair.webp',
     name: 'Priya Nair',
     category: 'Food, Home cooking',
     location: 'Kochi',
@@ -76,6 +82,7 @@ export const creators = [
   },
   {
     id: 'arjun-das',
+    image: '/creators/arjun-das.webp',
     name: 'Arjun Das',
     category: 'Comedy, Entertainment',
     location: 'Pune',
@@ -88,6 +95,7 @@ export const creators = [
   },
   {
     id: 'ishita-kapoor',
+    image: '/creators/ishita-kapoor.webp',
     name: 'Ishita Kapoor',
     category: 'Beauty, Makeup',
     location: 'Jaipur',

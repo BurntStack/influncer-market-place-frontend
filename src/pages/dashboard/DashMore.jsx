@@ -5,7 +5,8 @@ import './DashMore.css'
 
 const WORKSPACE = [
   { label: 'Favorites', to: '/dashboard/favorites' },
-  { label: 'Deliverables', meta: '2 to review', to: '/dashboard/deliverables' },
+  { label: 'Lists', to: '/dashboard/lists' },
+  { label: 'Deliverables', to: '/dashboard/deliverables' },
   { label: 'Reporting', to: '/dashboard/reporting' },
   { label: 'Messages', to: '/dashboard/account/messages' },
 ]
@@ -14,9 +15,9 @@ export default function DashMore() {
   const navigate = useNavigate()
   const user = getUser()
   const brand = {
-    name: user?.companyName || user?.name || 'Your brand',
-    initial: (user?.companyName || user?.name || 'Y').charAt(0).toUpperCase(),
-    plan: 'Free',
+    name: user?.brandName || user?.companyName || user?.fullName || user?.name || 'Your brand',
+    initial: (user?.brandName || user?.companyName || user?.fullName || user?.name || 'Y').charAt(0).toUpperCase(),
+    plan: 'Brand',
   }
 
   return (

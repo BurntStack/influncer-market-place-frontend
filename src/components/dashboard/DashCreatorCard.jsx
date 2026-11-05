@@ -10,7 +10,7 @@ export default function DashCreatorCard({ creator }) {
   const saved = useFavorites().some((item) => item.id === creator.id)
   const toggleSave = async (e) => {
     e.preventDefault(); e.stopPropagation()
-    toggleFavorite(creator)
+    toggleFavorite(creator).catch(error => window.alert(error.message))
   }
   return (
     <Link to={`/creators/${creator.id}`} className="dccard">

@@ -1,175 +1,97 @@
-import {
-  homeStats,
-  topCreators,
-  jobs as SEED_JOBS,
-  jobsCompleted,
-  orders as SEED_ORDERS,
-  deliverables as SEED_DELIVERABLES,
-  lists as SEED_LISTS,
-  reportStats,
-  viewsByMonth,
-  spendByPlatform,
-  reportTopCreators,
-  getCreator,
-} from '../data/dashboard.js'
+import { apiData, collectPages, fromPaise, toPaise } from '../lib/apiClient.js'
+import { listCreators } from './creators.js'
 
-// In-memory state seeded from mock data. Resets on page reload — fine for demo.
+const amount = value => fromPaise(value)
+const normalizeCampaign = campaign => ({
+  ...campaign,
+  budgetMin: amount(campaign.budgetMin),
+  budgetMax: amount(campaign.budgetMax),
+  applyBy: campaign.closesAt || campaign.applyBy,
+  bids: campaign.bidCount ?? campaign.bids ?? 0,
+})
+const normalizeOrder = order => ({ ...order, amount: amount(order.amount ?? order.price) })
+const normalizeBid = bid => ({ ...bid, price: amount(bid.price) })
 
-let _campaigns = [
-  ...SEED_JOBS.map((j) => ({
-    ...j,
-    status: j.status === 'Open for bids' ? 'open_for_bids'
-      : j.status === 'In progress' ? 'in_progress'
-      : j.status.toLowerCase().replace(/ /g, '_'),
-    platform: (j.meta || '').split(' · ')[0] || 'Instagram',
-    deliverables: (j.meta || '').split(' · ')[1] || '',
-    budgetMin: j.budgetMin || 5000,
-    budgetMax: j.budgetMax || 15000,
-  })),
-  ...jobsCompleted.map((j, i) => ({
-    id: `completed-${i}`,
-    title: j.title,
-    status: 'completed',
-    platform: 'Instagram',
-    deliverables: '1 Instagram Reel',
-    budgetMin: j.amount - 1000,
-    budgetMax: j.amount,
-    bids: 0,
-  })),
-]
-
-const MOCK_BIDS = {
-  'festive-snack': [
-    { id: 'b1', creatorId: 'ananya-rao', price: 8500, message: "I'd love to create an authentic Diwali-themed Reel that feels native to Instagram. My beauty audience overlaps with gift-buyers — great fit for a hamper launch.", expectedViews: 52000, deliveryDays: 5, status: 'pending' },
-    { id: 'b2', creatorId: 'priya-nair', price: 6000, message: "A food-forward hamper story is exactly in my wheelhouse. I'll style it as an unboxing + recipe tie-in, which always performs well for me.", expectedViews: 28000, deliveryDays: 7, status: 'pending' },
-    { id: 'b3', creatorId: 'arjun-das', price: 14000, message: 'My audience loves snack content and I can put your hamper in front of 400k people with a comedy-format Short. High energy, high recall.', expectedViews: 380000, deliveryDays: 4, status: 'pending' },
-  ],
-  'masala-soda': [
-    { id: 'b4', creatorId: 'meera-iyer', price: 6500, message: "Lifestyle + food is my exact lane. I'll shoot 3 UGC clips in natural settings — rooftop, kitchen, street — that feel summer-authentic.", expectedViews: 35000, deliveryDays: 6, status: 'pending' },
-    { id: 'b5', creatorId: 'sana-qureshi', price: 7200, message: 'My audience buys what I feature, and summer drinks are highly seasonal content.', expectedViews: 60000, deliveryDays: 5, status: 'pending' },
-    { id: 'b6', creatorId: 'ishita-kapoor', price: 8000, message: "I'll work the soda into a summer-ready content format — perfect overlap between beauty self-care and refreshment.", expectedViews: 72000, deliveryDays: 4, status: 'pending' },
-  ],
+export const getSummary = async () => {
+  const [campaigns, orders, creators] = await Promise.all([
+    getCampaigns(), getOrders(), listCreators({ pageSize: 8 }),
+  ])
+  return {
+    greetingName: null,
+    stats: [
+      { label: 'Active jobs', value: String(campaigns.filter(c => !['closed', 'completed', 'cancelled'].includes(c.status)).length), sub: 'Your campaigns' },
+      { label: 'Bids to review', value: String(campaigns.reduce((sum, c) => sum + Number(c.bidCount ?? c.bids ?? 0), 0)), sub: 'Across your campaigns' },
+      { label: 'Orders', value: String(orders.length), sub: 'Your collaborations' },
+      { label: 'Completed', value: String(orders.filter(o => ['completed', 'released'].includes(o.status)).length), sub: 'Approved orders' },
+    ],
+    topCreators: creators.results,
+  }
 }
-
-let _orders = SEED_ORDERS.map((o) => ({ ...o }))
-let _deliverables = SEED_DELIVERABLES.map((d) => ({ ...d }))
-let _lists = SEED_LISTS.map((l) => ({ ...l }))
-
-// --- Dashboard home ---
-
-export const getSummary = async () => ({ greetingName: null, stats: homeStats, topCreators })
-
 export const setTodo = async () => null
 
-// --- Lists ---
-
-export const getLists = async () => _lists
-export const getList = async (id) => _lists.find((l) => l.id === id) || null
-
-export const createList = async ({ name }) => {
-  const item = { id: `l${Date.now()}`, name, count: 0, covers: [], updated: 'Just now' }
-  _lists = [..._lists, item]
-  return item
-}
-
-export const renameList = async (id, { name }) => {
-  _lists = _lists.map((l) => (l.id === id ? { ...l, name } : l))
-  return null
-}
-
-export const duplicateList = async (id) => {
-  const original = _lists.find((l) => l.id === id)
-  if (!original) return null
-  const copy = { ...original, id: `l${Date.now()}`, name: `${original.name} copy`, updated: 'Just now' }
-  _lists = [..._lists, copy]
+export const getLists = (options = {}) => collectPages('/lists/', options)
+export const getList = id => apiData(`/lists/${encodeURIComponent(id)}/`)
+export const createList = body => apiData('/lists/', { method: 'POST', body: { name: body.name } })
+export const renameList = (id, body) => apiData(`/lists/${encodeURIComponent(id)}/`, { method: 'PATCH', body: { name: body.name } })
+export const deleteList = id => apiData(`/lists/${encodeURIComponent(id)}/`, { method: 'DELETE' })
+export const duplicateList = async id => {
+  const original = await getList(id)
+  const copy = await createList({ name: `${original.name} copy` })
+  for (const creator of original.creators || []) {
+    await apiData(`/lists/${encodeURIComponent(copy.id)}/creators/`, { method: 'POST', body: { creatorId: creator.id || creator } })
+  }
   return copy
 }
 
-export const deleteList = async (id) => {
-  _lists = _lists.filter((l) => l.id !== id)
-  return null
-}
+export const getCampaigns = async (options = {}) => (await collectPages('/campaigns/', options)).map(normalizeCampaign)
+export const createCampaign = body => apiData('/campaigns/', {
+  method: 'POST', body: {
+    title: body.title, brief: body.brief, platform: body.platform,
+    deliverables: body.deliverables, budgetMin: toPaise(body.budgetMin), budgetMax: toPaise(body.budgetMax),
+    closesAt: body.applyBy ? new Date(`${body.applyBy}T23:59:59`).toISOString() : undefined,
+    usageRights: body.usageRights,
+  },
+}).then(normalizeCampaign)
+export const updateCampaign = (id, body) => apiData(`/campaigns/${encodeURIComponent(id)}/`, {
+  method: 'PATCH', body: {
+    title: body.title, brief: body.brief, platform: body.platform,
+    deliverables: body.deliverables, budgetMin: toPaise(body.budgetMin), budgetMax: toPaise(body.budgetMax),
+    closesAt: body.applyBy ? new Date(`${body.applyBy}T23:59:59`).toISOString() : undefined,
+    usageRights: body.usageRights,
+  },
+}).then(normalizeCampaign)
+export const deleteCampaign = id => apiData(`/campaigns/${encodeURIComponent(id)}/close/`, { method: 'POST' })
+export const getCampaignBids = async id => (await collectPages(`/campaigns/${encodeURIComponent(id)}/bids/`)).map(normalizeBid)
+export const selectCampaignBid = (campaignId, bidId) => apiData(`/campaigns/${encodeURIComponent(campaignId)}/bids/${encodeURIComponent(bidId)}/select/`, { method: 'POST' })
 
-// --- Campaigns ---
-
-export const getCampaigns = async () => _campaigns
-
-export const createCampaign = async (body) => {
-  const campaign = { ...body, id: `c${Date.now()}`, status: 'open_for_bids', bids: 0, bidCount: 0 }
-  _campaigns = [campaign, ..._campaigns]
-  return campaign
-}
-
-export const updateCampaign = async (id, body) => {
-  _campaigns = _campaigns.map((c) => (c.id === id ? { ...c, ...body } : c))
-  return _campaigns.find((c) => c.id === id) || null
-}
-
-export const deleteCampaign = async (id) => {
-  _campaigns = _campaigns.filter((c) => c.id !== id)
-  return null
-}
-
-export const getCampaignBids = async (id) => {
-  const bids = MOCK_BIDS[id] || []
-  return bids.map((bid) => ({
-    ...bid,
-    creator: { ...(getCreator(bid.creatorId) || { id: bid.creatorId, name: 'Creator' }) },
-  }))
-}
-
-export const selectCampaignBid = async (campaignId) => {
-  _campaigns = _campaigns.map((c) => (c.id === campaignId ? { ...c, status: 'in_progress' } : c))
-  return null
-}
-
-// --- Orders ---
-
-export const getOrders = async () => _orders
-
-export const getOrder = async (id) => _orders.find((o) => o.id === id) || null
-
-export const payOrder = async () => null
-
-export const requestOrderChanges = async (id) => {
-  _orders = _orders.map((o) => (o.id === id ? { ...o, status: 'Changes requested' } : o))
-  return null
-}
-
-export const approveOrder = async (id) => {
-  _orders = _orders.map((o) =>
-    o.id === id ? { ...o, status: 'Completed', statusTone: 'green', payment: 'Released' } : o,
-  )
-  return null
-}
-
-// --- Deliverables ---
+export const getOrders = async (options = {}) => (await collectPages('/orders/', options)).map(normalizeOrder)
+export const getOrder = async id => normalizeOrder(await apiData(`/orders/${encodeURIComponent(id)}/`))
+export const payOrder = async () => { throw new Error('Payment is handled through checkout, not this screen.') }
+export const requestOrderChanges = (id, feedback) => apiData(`/orders/${encodeURIComponent(id)}/revisions/`, { method: 'POST', body: { feedback } })
+export const approveOrder = id => apiData(`/orders/${encodeURIComponent(id)}/approve/`, { method: 'POST' })
 
 export const getDeliverables = async (params = {}) => {
-  let items = _deliverables.slice()
-  if (params.q) {
-    const q = String(params.q).toLowerCase()
-    items = items.filter((d) => (d.content + ' ' + d.job + ' ' + d.type).toLowerCase().includes(q))
-  }
-  if (params.platform && params.platform !== 'All')
-    items = items.filter((d) => d.type?.toLowerCase().includes(String(params.platform).toLowerCase()))
-  if (params.jobId) {
-    const campaign = _campaigns.find((c) => c.id === params.jobId)
-    if (campaign) items = items.filter((d) => d.job === campaign.title || d.jobId === params.jobId)
-  }
-  return items
+  const orders = await getOrders()
+  const groups = await Promise.all(orders.map(async order => {
+    const results = await collectPages(`/orders/${encodeURIComponent(order.id)}/deliverables/`)
+    return results.map(deliverable => ({
+      ...deliverable, orderId: order.id, campaignId: order.campaignId || order.campaign?.id, creator: order.creator,
+      creatorId: order.creator?.id || order.creatorId,
+      job: order.campaign?.title || order.campaignTitle || order.deliverable || '',
+      content: deliverable.title || deliverable.note || 'Delivered content',
+      type: deliverable.type || order.platform || 'Content',
+      url: deliverable.contentUrl,
+      deliveredAt: deliverable.createdAt,
+    }))
+  }))
+  let results = groups.flat()
+  if (params.q) results = results.filter(item => `${item.content} ${item.job} ${item.type}`.toLowerCase().includes(params.q.toLowerCase()))
+  if (params.jobId) results = results.filter(item => item.campaignId === params.jobId)
+  if (params.platform) results = results.filter(item => item.type.toLowerCase().includes(params.platform.toLowerCase()))
+  if (params.from) results = results.filter(item => !item.deliveredAt || item.deliveredAt.slice(0, 10) >= params.from)
+  return results
 }
-
-export const getDeliverable = async (id) => _deliverables.find((d) => d.id === id) || null
-
-export const exportDeliverables = async () => null
-export const exportReporting = async () => null
-
-// --- Reporting ---
-
-export const getReporting = async () => ({
-  stats: reportStats,
-  viewsByMonth,
-  spendByPlatform,
-  topCreators: reportTopCreators,
-})
+export const getDeliverable = async id => (await getDeliverables()).find(item => String(item.id) === String(id)) || null
+export const exportDeliverables = async () => { throw new Error('The backend does not provide an export endpoint yet.') }
+export const exportReporting = exportDeliverables
+export const getReporting = async () => { throw new Error('Reporting is not available from the backend yet.') }
