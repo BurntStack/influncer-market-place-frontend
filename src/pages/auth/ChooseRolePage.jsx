@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { completeSignup, getUser } from '../../lib/auth.js'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { completeSignup, getUser, postLoginPath } from '../../lib/auth.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './ChooseRolePage.css'
 
@@ -17,7 +17,7 @@ export default function ChooseRolePage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const destination = selected => selected === 'brand' ? (from || '/dashboard') : '/creator/workspace'
+  const destination = selected => postLoginPath(selected, from)
   const choose = selected => {
     setError('')
     if (user?.role) {
@@ -42,6 +42,8 @@ export default function ChooseRolePage() {
     } catch (err) { setError(err?.message || 'Could not complete your profile.') }
     finally { setBusy(false) }
   }
+
+  if (user?.role) return <Navigate to={destination(user.role)} replace />
 
   return (
     <main className="role-page">

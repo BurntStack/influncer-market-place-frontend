@@ -3,6 +3,15 @@ import { apiData, clearToken, getRefreshToken, getToken, setRefreshToken, setTok
 const USER_KEY = 'linkloom_user'
 
 export const isAuthed = () => Boolean(getToken() || getRefreshToken())
+export const postLoginPath = (role, requested) => {
+  if (role === 'creator') return '/creator/workspace'
+  if (role === 'brand') {
+    const path = typeof requested === 'string' ? requested : ''
+    if (/^\/(dashboard(?:\/|\?|$)|creators\/[^/])/.test(path) && !path.startsWith('//')) return path
+    return '/dashboard'
+  }
+  return '/choose-role'
+}
 export const getUser = () => { try { return JSON.parse(localStorage.getItem(USER_KEY) || 'null') } catch { return null } }
 const setUser = user => { try { if (user) localStorage.setItem(USER_KEY, JSON.stringify(user)); else localStorage.removeItem(USER_KEY) } catch {} }
 export const updateLocalUser = patch => { const user = { ...(getUser() || {}), ...patch }; setUser(user); return user }
