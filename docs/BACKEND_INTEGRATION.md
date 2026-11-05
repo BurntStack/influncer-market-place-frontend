@@ -33,9 +33,10 @@ the full period. We have asked Rohith to confirm its refresh-token lifetime.
 The brand workspace can upload a logo, open permitted creator conversations,
 send text or image/PDF attachments, page through older messages, and open
 private delivered files using short-lived download URLs. Notifications and
-open chats refresh when WebSocket events arrive. Creator avatar, gallery,
-draft-file upload, and creator messaging APIs have reusable client helpers;
-their workspace remains the requested Coming soon page.
+open chats refresh when WebSocket events arrive. Creator onboarding uploads a
+profile photo with the existing `avatar` upload flow. Gallery, draft-file
+upload, and creator messaging APIs have reusable client helpers; their
+workspace remains the requested Coming soon page.
 
 Creator signup collects one or more platform IDs and a primary platform. The
 current creator PATCH contract only accepts `primaryPlatform`, so the IDs are

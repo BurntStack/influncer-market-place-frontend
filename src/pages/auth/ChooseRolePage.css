@@ -55,6 +55,14 @@
 .role-page__email button { flex:none; min-height:51px; }
 .role-page__verified { flex:none; display:inline-flex; align-items:center; min-height:51px; color:#34724d; font-size:14px; font-weight:700; }
 .role-page__verification-note { margin:-10px 0 20px; color:#68766a; font-size:13px; line-height:1.5; }
+.role-page__photo { margin:0 0 22px; padding:18px; border:1px solid #d6e3d2; border-radius:14px; background:#f2f7f0; }
+.role-page__photo > label { display:block; margin:0; color:#304b3d; font-size:15px; font-weight:650; }
+.role-page__photo > p { margin:5px 0 14px; color:#68766a; font-size:13px; line-height:1.5; }
+.role-page__photo > div { display:flex; align-items:center; gap:16px; }
+.role-page__photo img,.role-page__photo-placeholder { width:76px; height:76px; flex:none; border-radius:50%; object-fit:cover; }
+.role-page__photo-placeholder { display:grid; place-items:center; border:1px dashed #91ab8d; background:#e5efe2; color:#456c4a; font-size:30px; }
+.role-page__photo input[type="file"] { width:100%; min-width:0; margin:0; padding:8px; background:#fff; font-size:12px; }
+.role-page__photo > small { display:block; margin-top:10px; color:#68766a; font-size:12px; }
 .role-page__form > div:last-child { display:flex; justify-content:space-between; align-items:center; gap:15px; margin-top:26px; }
 .role-page__form .role-page__back { background:transparent; color:#496e4c; }
 .role-page__form .role-page__back:hover { background:#edf4eb; }

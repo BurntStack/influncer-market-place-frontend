@@ -18,6 +18,7 @@ try {
   const messagesApi = await vite.ssrLoadModule('/src/api/messages.js')
   const socialAccounts = await vite.ssrLoadModule('/src/lib/socialAccounts.js')
   const demographics = await vite.ssrLoadModule('/src/lib/creatorDemographics.js')
+  const creatorAvatar = await vite.ssrLoadModule('/src/lib/creatorAvatar.js')
   assert.equal(api.toPaise(11180), 1118000)
   assert.equal(api.fromPaise({ amount: 1118000, currency: 'INR' }), 11180)
 
@@ -33,9 +34,13 @@ try {
     if (String(url).endsWith('/brands/me/')) return Response.json({ success: verifyId === 'u3', data: verifyId === 'u3' ? { id: 'brand-3' } : null, error: verifyId === 'u3' ? null : { code: 'NOT_FOUND' }, meta: {} }, { status: verifyId === 'u3' ? 200 : 404 })
     if (String(url).endsWith('/creators/me/') && options.method === 'PATCH') return Response.json({ success: true, data: { displayName: 'Creator', categories: ['Food'] }, error: null, meta: {} })
     if (String(url).endsWith('/creators/me/')) return Response.json({ success: false, data: null, error: { code: 'NOT_FOUND' }, meta: {} }, { status: 404 })
-    if (String(url).endsWith('/uploads/') && options.method === 'POST') return Response.json({ success: true, data: { upload: { id: 'upload-1' }, uploadUrl: 'https://storage.example/upload-1', method: 'PUT', headers: { 'Content-Type': 'image/png' } }, error: null, meta: {} })
-    if (String(url) === 'https://storage.example/upload-1') return new Response(null, { status: 200 })
+    if (String(url).endsWith('/uploads/') && options.method === 'POST') {
+      const id = JSON.parse(options.body).kind === 'avatar' ? 'upload-avatar' : 'upload-1'
+      return Response.json({ success: true, data: { upload: { id }, uploadUrl: `https://storage.example/${id}`, method: 'PUT', headers: { 'Content-Type': 'image/png' } }, error: null, meta: {} })
+    }
+    if (String(url) === 'https://storage.example/upload-1' || String(url) === 'https://storage.example/upload-avatar') return new Response(null, { status: 200 })
     if (String(url).endsWith('/uploads/upload-1/complete/')) return Response.json({ success: true, data: { id: 'upload-1', kind: 'brand_logo', status: 'ready', url: 'https://cdn.example/logo.png' }, error: null, meta: {} })
+    if (String(url).endsWith('/uploads/upload-avatar/complete/')) return Response.json({ success: true, data: { id: 'upload-avatar', kind: 'avatar', status: 'ready', url: 'https://cdn.example/avatar.png' }, error: null, meta: {} })
     if (String(url).endsWith('/uploads/upload-1/download-url/')) return Response.json({ success: true, data: { url: 'https://storage.example/download-1', expiresIn: 300 }, error: null, meta: {} })
     if (new URL(String(url)).pathname.endsWith('/conversations/') && options.method === 'GET') return Response.json({ success: true, data: [{ id: 'chat-1' }], error: null, meta: { nextCursor: null } })
     if (String(url).endsWith('/conversations/') && options.method === 'POST') return Response.json({ success: true, data: { id: 'chat-1' }, error: null, meta: {} })
@@ -142,6 +147,10 @@ try {
   assert.deepEqual(socialAccounts.getSocialAccounts({ id: 'u2' }).map(item => item.platform), ['Instagram', 'YouTube'])
   demographics.saveCreatorDemographics({ id: 'u2' }, { age: 26, gender: 'non_binary' })
   assert.deepEqual(demographics.getCreatorDemographics({ id: 'u2' }), { age: 26, gender: 'non_binary' })
+  assert.equal((await uploads.uploadFile(image, 'avatar')).url, 'https://cdn.example/avatar.png')
+  assert.equal(calls.find(call => call.url === 'https://storage.example/upload-avatar').headers.Authorization, undefined)
+  creatorAvatar.saveCreatorAvatar({ id: 'u2' }, 'https://cdn.example/avatar.png')
+  assert.equal(creatorAvatar.getCreatorAvatar({ id: 'u2' }), 'https://cdn.example/avatar.png')
   console.log('API auth, money, upload, messaging and realtime request checks passed.')
 } finally {
   await vite.close()

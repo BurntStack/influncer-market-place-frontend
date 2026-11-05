@@ -5,6 +5,8 @@ import { apiData } from '../../lib/apiClient.js'
 import { saveMyCreatorProfile } from '../../api/creators.js'
 import { getSocialAccounts, saveSocialAccounts } from '../../lib/socialAccounts.js'
 import { getCreatorDemographics, saveCreatorDemographics } from '../../lib/creatorDemographics.js'
+import { getCreatorAvatar, saveCreatorAvatar } from '../../lib/creatorAvatar.js'
+import { uploadFile } from '../../api/uploads.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './ChooseRolePage.css'
 
@@ -34,6 +36,9 @@ export default function ChooseRolePage({ existingCreator = false }) {
   const [age, setAge] = useState(existingCreator ? String(savedDemographics.age ?? user?.age ?? '') : '')
   const [gender, setGender] = useState(existingCreator ? savedDemographics.gender || user?.gender || '' : '')
   const [genderDescription, setGenderDescription] = useState(existingCreator ? savedDemographics.genderDescription || '' : '')
+  const [photoFile, setPhotoFile] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState('')
+  const [photoUrl, setPhotoUrl] = useState(existingCreator ? getCreatorAvatar(user) || user?.avatarUrl || '' : '')
   const [signupCompleted, setSignupCompleted] = useState(existingCreator)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -51,9 +56,17 @@ export default function ChooseRolePage({ existingCreator = false }) {
       setBio(value => value || profile.bio || '')
       setAge(value => value || String(profile.age ?? ''))
       setGender(value => value || profile.gender || '')
+      setPhotoUrl(value => value || profile.avatarUrl || '')
     }).catch(() => {})
     return () => { active = false }
   }, [existingCreator])
+
+  useEffect(() => {
+    if (!photoFile) { setPhotoPreview(''); return }
+    const preview = URL.createObjectURL(photoFile)
+    setPhotoPreview(preview)
+    return () => URL.revokeObjectURL(preview)
+  }, [photoFile])
 
   const destination = selected => postLoginPath(selected, from)
   const togglePlatform = platform => {
@@ -81,9 +94,13 @@ export default function ChooseRolePage({ existingCreator = false }) {
       : !displayName.trim() || !category || !locationName.trim() || !bio.trim()
         || !Number.isInteger(Number(age)) || Number(age) < 1 || Number(age) > 120
         || !gender || (gender === 'self_describe' && !genderDescription.trim())
+        || (!photoFile && !photoUrl)
         || !selectedPlatforms.length || !selectedPlatforms.includes(primaryPlatform)
         || selectedPlatforms.some(platform => !platformHandles[platform]?.trim()))) {
       setError('Please complete the required fields.'); return
+    }
+    if (role === 'creator' && photoFile && (!['image/jpeg', 'image/png', 'image/webp'].includes(photoFile.type) || photoFile.size > 10 * 1024 * 1024)) {
+      setError('Choose a JPEG, PNG, or WebP photo no larger than 10 MB.'); return
     }
     setBusy(true); setError('')
     try {
@@ -105,6 +122,14 @@ export default function ChooseRolePage({ existingCreator = false }) {
         await saveMyCreatorProfile({ displayName: displayName.trim(), bio: bio.trim(), categories: [category], location: locationName.trim(), primaryPlatform })
         saveSocialAccounts(getUser(), socialAccounts)
         saveCreatorDemographics(getUser(), demographics)
+        let avatarUrl = photoUrl
+        if (photoFile) {
+          const uploaded = await uploadFile(photoFile, 'avatar')
+          avatarUrl = uploaded?.url || (await apiData('/creators/me/'))?.avatarUrl || ''
+        }
+        if (!avatarUrl) throw new Error('Your profile photo could not be confirmed. Please try again.')
+        saveCreatorAvatar(getUser(), avatarUrl)
+        updateLocalUser({ avatarUrl })
       }
       navigate(destination(role), { replace: true })
     } catch (err) { setError(err?.message || 'Could not complete your profile.') }
@@ -157,6 +182,7 @@ export default function ChooseRolePage({ existingCreator = false }) {
             <p className="role-page__platform-note">Age and gender are saved on this device while backend profile support is being added.</p>
             <label>Bio<textarea value={bio} onChange={event => setBio(event.target.value)} placeholder="Tell brands what you create" maxLength={1000} rows={4} required /></label>
             {emailField}
+            <div className="role-page__photo"><label htmlFor="creator-photo">Profile photo</label><p>This is the photo brands will see on your profile.</p><div>{(photoPreview || photoUrl) ? <img src={photoPreview || photoUrl} alt="Your profile photo preview" /> : <span className="role-page__photo-placeholder" aria-hidden="true">+</span>}<input id="creator-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setPhotoFile(event.target.files?.[0] || null)} required={!photoUrl} /></div><small>JPEG, PNG, or WebP · up to 10 MB</small></div>
           </>}
           {error && <p className="role-page__error" role="alert">{error}</p>}
           <div>{!signupCompleted && <button type="button" className="role-page__back" onClick={() => { setRole(''); setError('') }}>← Back</button>}<button type="submit" disabled={busy}>{busy ? 'Saving…' : signupCompleted ? 'Retry saving profile ↗' : 'Continue ↗'}</button></div>
