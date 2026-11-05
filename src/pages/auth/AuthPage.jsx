@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { fetchMe, postLoginPath, requestOtp, verifyOtp } from '../../lib/auth.js'
+import { postLoginPath, requestOtp, resolveLoginUser, verifyOtp } from '../../lib/auth.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './AuthPage.css'
 import './AuthStudio.css'
@@ -35,9 +35,9 @@ export default function AuthPage({ mode = 'login' }) {
         await sendCode()
       } else {
         if (code.length !== 6) throw new Error('Enter the 6-digit verification code.')
-        const session = await verifyOtp(challengeId, code.trim())
+        const session = await verifyOtp(challengeId, code.trim(), phone)
         if (!session?.access) throw new Error('Verification did not return an access token.')
-        const user = session.user?.role ? session.user : await fetchMe()
+        const user = await resolveLoginUser(session)
         const destination = postLoginPath(user?.role, location.state?.from)
         navigate(destination, { replace: true, state: destination === '/choose-role' ? { from: location.state?.from } : undefined })
       }
