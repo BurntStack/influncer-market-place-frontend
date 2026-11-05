@@ -37,6 +37,14 @@
 .role-page__form input,.role-page__form select,.role-page__form textarea { display:block; width:100%; margin-top:9px; padding:14px 15px; border:1px solid #cddbc9; border-radius:10px; background:#fff; color:#20332d; font:inherit; font-weight:400; outline:none; transition:border-color .2s, box-shadow .2s; }
 .role-page__form textarea { resize:vertical; min-height:104px; }
 .role-page__form input:focus,.role-page__form select:focus,.role-page__form textarea:focus { border-color:#6e9570; box-shadow:0 0 0 4px #8aaf8726; }
+.role-page__platforms { margin:0 0 21px; padding:0; border:0; }
+.role-page__platforms legend { color:#304b3d; font-size:15px; font-weight:650; }
+.role-page__platforms p,.role-page__platform-note { margin:6px 0 12px; color:#68766a; font-size:13px; line-height:1.5; }
+.role-page__platforms > div { display:flex; flex-wrap:wrap; gap:8px; }
+.role-page__platforms label { display:inline-flex; align-items:center; gap:7px; margin:0; padding:9px 12px; border:1px solid #cddbc9; border-radius:999px; background:#fff; color:#304b3d; font-size:13px; cursor:pointer; }
+.role-page__platforms label:has(input:checked) { border-color:#6e9570; background:#e7f1e4; }
+.role-page__platforms input[type="checkbox"] { width:auto; margin:0; padding:0; accent-color:#315c42; }
+.role-page__platform-note { margin:-8px 0 20px; }
 .role-page__email { display:flex; gap:10px; align-items:end; }
 .role-page__email input { flex:1; min-width:0; }
 .role-page__form button { border:0; border-radius:10px; padding:13px 19px; background:#20332d; color:#fff; font:inherit; font-weight:600; cursor:pointer; }

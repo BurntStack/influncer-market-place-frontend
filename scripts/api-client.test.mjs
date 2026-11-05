@@ -16,6 +16,7 @@ try {
   const creators = await vite.ssrLoadModule('/src/api/creators.js')
   const uploads = await vite.ssrLoadModule('/src/api/uploads.js')
   const messagesApi = await vite.ssrLoadModule('/src/api/messages.js')
+  const socialAccounts = await vite.ssrLoadModule('/src/lib/socialAccounts.js')
   assert.equal(api.toPaise(11180), 1118000)
   assert.equal(api.fromPaise({ amount: 1118000, currency: 'INR' }), 11180)
 
@@ -136,6 +137,8 @@ try {
   assert.deepEqual(JSON.parse(calls.find(call => call.url.endsWith('/conversations/chat-1/messages/') && call.method === 'POST').body), { text: 'Reply', attachmentUploadId: 'upload-1' })
   await messagesApi.markConversationRead('chat-1')
   assert.equal((await api.apiData('/realtime/ticket/', { method: 'POST' })).ticket, 'ticket-1')
+  socialAccounts.saveSocialAccounts({ id: 'u2' }, [{ platform: 'Instagram', handle: '@creator' }, { platform: 'YouTube', handle: '@creator-video' }])
+  assert.deepEqual(socialAccounts.getSocialAccounts({ id: 'u2' }).map(item => item.platform), ['Instagram', 'YouTube'])
   console.log('API auth, money, upload, messaging and realtime request checks passed.')
 } finally {
   await vite.close()

@@ -44,6 +44,7 @@ export default function App() {
         <Route path="/login" element={<AuthPage mode="login" />} />
         <Route path="/signup" element={<AuthPage mode="signup" />} />
         <Route path="/choose-role" element={<RequireAuth><ChooseRolePage /></RequireAuth>} />
+        <Route path="/creator/setup" element={<RequireAuth role="creator"><ChooseRolePage existingCreator /></RequireAuth>} />
         <Route path="/creator/workspace" element={<RequireAuth role="creator"><CreatorWorkspace /></RequireAuth>} />
         <Route
           path="/onboarding"

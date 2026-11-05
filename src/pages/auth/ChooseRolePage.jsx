@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { completeSignup, getUser, postLoginPath, updateLocalUser } from '../../lib/auth.js'
 import { apiData } from '../../lib/apiClient.js'
 import { saveMyCreatorProfile } from '../../api/creators.js'
+import { getSocialAccounts, saveSocialAccounts } from '../../lib/socialAccounts.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './ChooseRolePage.css'
 
@@ -10,27 +11,52 @@ const brandCategories = ['Beauty', 'Fashion', 'Food & Beverage', 'Health & Fitne
 const creatorCategories = ['Beauty', 'Fashion', 'Food', 'Fitness', 'Lifestyle', 'Technology', 'Travel', 'Comedy', 'Education', 'Other']
 const platforms = ['Instagram', 'YouTube', 'Facebook', 'X', 'LinkedIn']
 
-export default function ChooseRolePage() {
+export default function ChooseRolePage({ existingCreator = false }) {
   const navigate = useNavigate()
   const location = useLocation()
   const requested = location.state?.from || new URLSearchParams(location.search).get('from')
   const from = requested?.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/choose-role') ? requested : null
   const user = getUser()
-  const [role, setRole] = useState('')
+  const savedAccounts = existingCreator ? getSocialAccounts(user) : []
+  const [role, setRole] = useState(existingCreator ? 'creator' : '')
   const [fullName, setFullName] = useState(user?.fullName || user?.name || '')
   const [brandName, setBrandName] = useState('')
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState(existingCreator ? user?.categories?.[0] || '' : '')
   const [email, setEmail] = useState(user?.email || '')
-  const [displayName, setDisplayName] = useState('')
-  const [locationName, setLocationName] = useState('')
-  const [primaryPlatform, setPrimaryPlatform] = useState('')
-  const [bio, setBio] = useState('')
-  const [signupCompleted, setSignupCompleted] = useState(false)
+  const [displayName, setDisplayName] = useState(existingCreator ? user?.displayName || '' : '')
+  const [locationName, setLocationName] = useState(existingCreator ? user?.location || '' : '')
+  const [primaryPlatform, setPrimaryPlatform] = useState(existingCreator ? user?.primaryPlatform || '' : '')
+  const [selectedPlatforms, setSelectedPlatforms] = useState(savedAccounts.map(item => item.platform))
+  const [platformHandles, setPlatformHandles] = useState(Object.fromEntries(savedAccounts.map(item => [item.platform, item.handle])))
+  const [bio, setBio] = useState(existingCreator ? user?.bio || '' : '')
+  const [signupCompleted, setSignupCompleted] = useState(existingCreator)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const emailVerified = user?.emailVerified === true && user?.email?.toLowerCase() === email.trim().toLowerCase()
 
+  useEffect(() => {
+    if (!existingCreator) return
+    let active = true
+    apiData('/creators/me/').then(profile => {
+      if (!active || !profile) return
+      setDisplayName(value => value || profile.displayName || '')
+      setCategory(value => value || profile.categories?.[0] || '')
+      setLocationName(value => value || profile.location || '')
+      setPrimaryPlatform(value => value || profile.primaryPlatform || '')
+      setBio(value => value || profile.bio || '')
+    }).catch(() => {})
+    return () => { active = false }
+  }, [existingCreator])
+
   const destination = selected => postLoginPath(selected, from)
+  const togglePlatform = platform => {
+    const next = selectedPlatforms.includes(platform)
+      ? selectedPlatforms.filter(item => item !== platform)
+      : [...selectedPlatforms, platform]
+    setSelectedPlatforms(next)
+    if (!next.includes(primaryPlatform)) setPrimaryPlatform(next[0] || '')
+    setError('')
+  }
   const choose = selected => {
     setError('')
     if (user?.role) {
@@ -45,7 +71,9 @@ export default function ChooseRolePage() {
     if (busy) return
     if (!fullName.trim() || !email.trim() || (role === 'brand'
       ? !brandName.trim() || !category
-      : !displayName.trim() || !category || !locationName.trim() || !primaryPlatform || !bio.trim())) {
+      : !displayName.trim() || !category || !locationName.trim() || !bio.trim()
+        || !selectedPlatforms.length || !selectedPlatforms.includes(primaryPlatform)
+        || selectedPlatforms.some(platform => !platformHandles[platform]?.trim()))) {
       setError('Please complete the required fields.'); return
     }
     setBusy(true); setError('')
@@ -62,8 +90,10 @@ export default function ChooseRolePage() {
         updateLocalUser({ email: email.trim(), industry: category, emailVerified: verified })
         await apiData('/brands/me/', { method: 'PATCH', body: { industry: category } })
       } else {
-        updateLocalUser({ email: email.trim(), emailVerified: verified })
+        const socialAccounts = selectedPlatforms.map(platform => ({ platform, handle: platformHandles[platform].trim() }))
+        updateLocalUser({ email: email.trim(), emailVerified: verified, socialAccounts })
         await saveMyCreatorProfile({ displayName: displayName.trim(), bio: bio.trim(), categories: [category], location: locationName.trim(), primaryPlatform })
+        saveSocialAccounts(getUser(), socialAccounts)
       }
       navigate(destination(role), { replace: true })
     } catch (err) { setError(err?.message || 'Could not complete your profile.') }
@@ -106,7 +136,10 @@ export default function ChooseRolePage() {
           </> : <>
             <label>Display name<input value={displayName} onChange={event => setDisplayName(event.target.value)} placeholder="How brands will see you" required /></label>
             <label>Category<select value={category} onChange={event => setCategory(event.target.value)} required><option value="">Select your category</option>{creatorCategories.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
-            <label>Primary platform<select value={primaryPlatform} onChange={event => setPrimaryPlatform(event.target.value)} required><option value="">Select your platform</option>{platforms.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
+            <fieldset className="role-page__platforms"><legend>Your platforms</legend><p>Select every platform where you create content.</p><div>{platforms.map(platform => <label key={platform}><input type="checkbox" checked={selectedPlatforms.includes(platform)} onChange={() => togglePlatform(platform)} />{platform}</label>)}</div></fieldset>
+            {selectedPlatforms.map(platform => <label key={platform}>{platform === 'Instagram' ? 'Instagram ID' : `${platform} handle or profile URL`}<input value={platformHandles[platform] || ''} onChange={event => setPlatformHandles(current => ({ ...current, [platform]: event.target.value }))} placeholder={platform === 'Instagram' ? '@yourhandle' : `Your ${platform} account`} maxLength={200} required /></label>)}
+            <label>Primary platform<select value={primaryPlatform} onChange={event => setPrimaryPlatform(event.target.value)} required disabled={!selectedPlatforms.length}><option value="">Select your main platform</option>{selectedPlatforms.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
+            <p className="role-page__platform-note">Platform IDs are saved on this device while backend profile support is being added.</p>
             <label>Location<input value={locationName} onChange={event => setLocationName(event.target.value)} placeholder="City, state" required /></label>
             <label>Bio<textarea value={bio} onChange={event => setBio(event.target.value)} placeholder="Tell brands what you create" maxLength={1000} rows={4} required /></label>
             {emailField}

@@ -37,6 +37,12 @@ open chats refresh when WebSocket events arrive. Creator avatar, gallery,
 draft-file upload, and creator messaging APIs have reusable client helpers;
 their workspace remains the requested Coming soon page.
 
+Creator signup collects one or more platform IDs and a primary platform. The
+current creator PATCH contract only accepts `primaryPlatform`, so the IDs are
+kept on the device until the backend adds a social-accounts field or endpoint.
+Existing creator accounts without saved platform IDs are sent through the
+creator details form once on this device; they are not asked to choose a role.
+
 ## Waiting on backend details
 
 - A brand-facing route for a selected creator's packages. Only
