@@ -8,7 +8,7 @@ const WORKSPACE = [
   { label: 'Lists', to: '/dashboard/lists' },
   { label: 'Deliverables', to: '/dashboard/deliverables' },
   { label: 'Reporting', to: '/dashboard/reporting' },
-  { label: 'Messages', to: '/dashboard/account/messages' },
+  { label: 'Messages', to: '/dashboard/messages' },
 ]
 
 export default function DashMore() {

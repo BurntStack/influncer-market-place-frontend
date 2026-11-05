@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { getCreator } from '../../data/dashboard.js'
 import { getDeliverables, getDeliverable, getCampaigns } from '../../api/dashboard.js'
+import { getDownloadUrl } from '../../api/uploads.js'
 import Modal from '../../components/Modal.jsx'
 import Dropdown from '../../components/Dropdown.jsx'
 import './dash-pages.css'
@@ -26,7 +26,12 @@ export default function DashDeliverables() {
   const setFilter = (key, value) => setFilters((f) => ({ ...f, [key]: value }))
   const openContent = async item => {
     setSelected(item); setDetailLoading(true); setDetailError('')
-    try { const detail = await getDeliverable(item.id); setSelected(current => current?.id === item.id ? { ...current, ...detail, job: detail.job?.title || detail.job || current.job } : current) }
+    try {
+      const detail = await getDeliverable(item.id)
+      const uploadId = detail?.fileUploadId || detail?.fileUpload?.id || detail?.uploadId || detail?.file?.uploadId || detail?.file?.id
+      const downloadUrl = uploadId ? await getDownloadUrl(uploadId) : null
+      setSelected(current => current?.id === item.id ? { ...current, ...detail, downloadUrl, job: detail?.job?.title || detail?.job || current.job } : current)
+    }
     catch (err) { setDetailError(err.message || 'Could not load this content.') }
     finally { setDetailLoading(false) }
   }
@@ -97,12 +102,12 @@ export default function DashDeliverables() {
           <tbody>
             {!deliverables.length && <tr><td colSpan="6">{loading ? 'Loading your content…' : error ? 'Your content could not be loaded. Use Try again above.' : 'No content matches this view yet.'}</td></tr>}
             {deliverables.map((d) => {
-              const c = getCreator(d.creatorId) || d.creator || { image: '', name: 'Creator' }
+              const c = d.creator || { image: '', name: 'Creator' }
               return (
                 <tr key={d.id}>
                   <td>
                     <div className="dcell-media">
-                      <img src={c.image} alt="" />
+                      {(c.image || c.avatarUrl) && <img src={c.image || c.avatarUrl} alt="" />}
                       <div>
                         <strong>{d.content}</strong>
                         <span>▶ {d.type}</span>
@@ -111,7 +116,7 @@ export default function DashDeliverables() {
                   </td>
                   <td>
                     <div className="dcell-creator">
-                      <img src={c.image} alt="" />
+                      {(c.image || c.avatarUrl) && <img src={c.image || c.avatarUrl} alt="" />}
                       {c.name}
                     </div>
                   </td>

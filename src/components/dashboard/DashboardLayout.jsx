@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { logout, getUser } from '../../lib/auth.js'
+import { apiData } from '../../lib/apiClient.js'
+import { subscribeRealtime } from '../../lib/realtime.js'
 import Dropdown from '../Dropdown.jsx'
 import LogoMark from '../LogoMark.jsx'
 import './DashboardLayout.css'
@@ -66,6 +69,7 @@ const NAV = [
   { to: '/dashboard/jobs', label: 'Jobs', Icon: BriefcaseIcon },
   { to: '/dashboard/deliverables', label: 'Deliverables', Icon: BoxIcon },
   { to: '/dashboard/orders', label: 'Orders', Icon: MessageIcon },
+  { to: '/dashboard/messages', label: 'Messages', Icon: MessageIcon },
   { to: '/dashboard/reporting', label: 'Reporting', Icon: ChartIcon },
 ]
 
@@ -85,15 +89,30 @@ const TITLES = {
   '/dashboard/deliverables': 'Deliverables',
   '/dashboard/orders': 'Orders',
   '/dashboard/reporting': 'Reporting',
+  '/dashboard/messages': 'Messages',
   '/dashboard/more': 'More',
 }
 
 export default function DashboardLayout() {
+  const [unreadCount, setUnreadCount] = useState(0)
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const accountTitles = { settings: 'Account settings', billing: 'Billing & plan', brands: 'Your brand', messages: 'Messages', notifications: 'Notifications', support: 'Help & support' }
   const title = TITLES[pathname] || accountTitles[pathname.split('/').pop()] || 'Dashboard'
   const moreActive = MORE_ROUTES.includes(pathname) || pathname.startsWith('/dashboard/account/')
+  useEffect(() => {
+    let active = true
+    const refreshCount = () => apiData('/notifications/unread-count/').then(data => {
+      if (active) setUnreadCount(Number(data?.count ?? data?.unreadCount ?? 0))
+    }).catch(() => {})
+    refreshCount()
+    const unsubscribe = subscribeRealtime(event => {
+      window.dispatchEvent(new CustomEvent('linkloom-realtime', { detail: event }))
+      if (event.event === 'notification' || event.event === 'reconnected') refreshCount()
+    })
+    window.addEventListener('linkloom-notifications-changed', refreshCount)
+    return () => { active = false; unsubscribe(); window.removeEventListener('linkloom-notifications-changed', refreshCount) }
+  }, [])
 
   const user = getUser()
   const brand = {
@@ -167,11 +186,12 @@ export default function DashboardLayout() {
               <SearchIcon />
               <input placeholder="Search creators" onKeyDown={(event) => { if (event.key === 'Enter') navigate(`/dashboard/search?q=${encodeURIComponent(event.target.value)}`) }} />
             </div>
-            <button className="dtop__icon" aria-label="Messages" onClick={() => navigate('/dashboard/account/messages')}>
+            <button className="dtop__icon" aria-label="Messages" onClick={() => navigate('/dashboard/messages')}>
               <MessageIcon />
             </button>
-            <button className="dtop__icon" aria-label="Notifications" onClick={() => navigate('/dashboard/account/notifications')}>
+            <button className="dtop__icon" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} onClick={() => navigate('/dashboard/account/notifications')}>
               <BellIcon />
+              {unreadCount > 0 && <span className="dtop__unread">{unreadCount > 99 ? '99+' : unreadCount}</span>}
             </button>
           </div>
         </header>
@@ -183,8 +203,9 @@ export default function DashboardLayout() {
             LinkLoom
           </Link>
           <div className="dtop-mobile__right">
-            <button className="dtop__icon" aria-label="Notifications" onClick={() => navigate('/dashboard/account/notifications')}>
+            <button className="dtop__icon" aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`} onClick={() => navigate('/dashboard/account/notifications')}>
               <BellIcon />
+              {unreadCount > 0 && <span className="dtop__unread">{unreadCount > 99 ? '99+' : unreadCount}</span>}
             </button>
             <span className="dside__avatar">{brand.initial}</span>
           </div>

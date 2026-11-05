@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useLocation } from 'react-router-dom'
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { getCreator, getCreatorPackages, getCreatorReviews, getSimilarCreators, addCartItem, createOffer } from '../api/creators.js'
 import CreatorCard from '../components/CreatorCard.jsx'
 import Modal from '../components/Modal.jsx'
 import { useFavorites, toggleFavorite } from '../lib/favorites.js'
+import { openConversation } from '../api/messages.js'
 import './CreatorProfile.css'
 import './CreatorProfileStudio.css'
 
@@ -17,6 +18,7 @@ const dateLabel = value => {
 export default function CreatorProfile() {
   const { id } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const returnTo = location.state?.fromBids || '/dashboard/search'
   const [creator, setCreator] = useState(null)
   const [packages, setPackages] = useState([])
@@ -64,6 +66,17 @@ export default function CreatorProfile() {
     finally { setBusy(false) }
   }
   const openOffer = () => { setOffer({ deliverable: selected?.title || creator.deliverable || '', budget: String(selected?.price || creator.priceFrom || ''), message: '', deadline: '', usageRights: '' }); setActionError(''); setModal('offer') }
+  const startChat = async () => {
+    setActionError('')
+    try {
+      const conversation = await openConversation({ creatorId: id })
+      navigate(`/dashboard/messages?chat=${encodeURIComponent(conversation.id)}`)
+    } catch (err) {
+      setActionError(err.code === 'CONVERSATION_NOT_ALLOWED'
+        ? 'Messaging opens after you have a bid, offer, or order with this creator.'
+        : err.message || 'Could not open the conversation.')
+    }
+  }
   const submitOffer = async event => {
     event.preventDefault()
     if (busy) return
@@ -79,7 +92,7 @@ export default function CreatorProfile() {
   const gallery = [...new Set([creator.image, ...(creator.gallery || [])].filter(Boolean))]
   const reviewCount = creator.reviewCount ?? reviews.length
   return <div className="profile profile--studio container">
-    <div className="profile__topbar"><Link className="profile__back" to={returnTo}>← {location.state?.fromBids ? 'Back to bids' : 'Back to discovery'}</Link><div className="profile__topactions"><button className="btn btn--outline btn--sm" onClick={share}>Share profile ↗</button><button className="btn btn--outline btn--sm" aria-pressed={saved} onClick={() => toggleFavorite({ ...creator, id }).catch(error => setActionError(error.message))}>{saved ? '♥ Saved' : '♡ Save creator'}</button></div></div>
+    <div className="profile__topbar"><Link className="profile__back" to={returnTo}>← {location.state?.fromBids ? 'Back to bids' : 'Back to discovery'}</Link><div className="profile__topactions"><button className="btn btn--outline btn--sm" onClick={share}>Share profile ↗</button><button className="btn btn--outline btn--sm" onClick={startChat}>Message creator</button><button className="btn btn--outline btn--sm" aria-pressed={saved} onClick={() => toggleFavorite({ ...creator, id }).catch(error => setActionError(error.message))}>{saved ? '♥ Saved' : '♡ Save creator'}</button></div></div>
     <header className="creator-intro"><div><span className="eyebrow">A FRESH PERSPECTIVE / {creator.platform}</span><h1>{creator.name}<span>.</span></h1><p>{creator.category} · {creator.location}</p></div><div className="creator-intro__stats"><div><strong>{creator.followers || '—'}</strong><span>Audience</span></div><div><strong>{creator.rating ?? '—'} <small>★</small></strong><span>{reviewCount} reviews</span></div></div></header>
     <div className={`profile__gallery ${gallery.length < 2 ? 'profile__gallery--single' : ''}`}>
       <div className="profile__gallery-main">{gallery[0] && <img src={gallery[0]} alt={`${creator.name} portrait`} />}<div className="creator-photo-caption"><span>MEET THE CREATOR</span><strong>{creator.category}</strong></div></div>

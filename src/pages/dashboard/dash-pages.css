@@ -271,3 +271,7 @@
   .dstats { grid-template-columns: 1fr 1fr; }
   .dcreator-grid { grid-template-columns: 1fr 1fr; }
 }
+.brand-logo-upload { display:flex; align-items:center; gap:18px; margin-bottom:24px; padding-bottom:22px; border-bottom:1px solid #e4eadf; }
+.brand-logo-upload img { width:72px; height:72px; border-radius:14px; object-fit:contain; background:#eef3ea; }
+.brand-logo-upload label { display:flex; flex-direction:column; gap:8px; color:#304b3d; font-weight:600; }
+.brand-logo-upload input { max-width:250px; font:inherit; font-size:13px; }

@@ -271,6 +271,7 @@
 }
 .dtop__search input::placeholder { color: var(--text-faint); }
 .dtop__icon {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -282,6 +283,7 @@
   color: var(--text-muted);
   transition: border-color 0.12s, color 0.12s;
 }
+.dtop__unread { position:absolute; top:-5px; right:-7px; display:grid; place-items:center; min-width:17px; height:17px; padding:0 3px; border-radius:9px; background:#315c42; color:#fff; font-size:10px; font-weight:700; }
 .dtop__icon:hover {
   border-color: var(--pink);
   color: var(--pink);

@@ -25,6 +25,16 @@ the full period. We have asked Rohith to confirm its refresh-token lifetime.
 | Orders and deliverables | `/orders/`, `/orders/{id}/`, `/orders/{id}/deliverables/`, revisions, approval |
 | Custom offers | `/offers/` |
 | Notifications | `/notifications/`, notification read |
+| Brand logo and private file links | `/uploads/`, signed PUT URL, `/uploads/{id}/complete/`, `/uploads/{id}/download-url/` |
+| Messages | `/conversations/`, `/conversations/{id}/messages/`, `/conversations/{id}/read/` |
+| Live updates | `/realtime/ticket/`, then `/ws/?ticket=...` with reconnect and ping |
+
+The brand workspace can upload a logo, open permitted creator conversations,
+send text or image/PDF attachments, page through older messages, and open
+private delivered files using short-lived download URLs. Notifications and
+open chats refresh when WebSocket events arrive. Creator avatar, gallery,
+draft-file upload, and creator messaging APIs have reusable client helpers;
+their workspace remains the requested Coming soon page.
 
 ## Waiting on backend details
 

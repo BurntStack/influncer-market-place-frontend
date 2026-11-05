@@ -18,6 +18,7 @@ import DashDeliverables from './pages/dashboard/DashDeliverables.jsx'
 import DashOrders from './pages/dashboard/DashOrders.jsx'
 import DashReporting from './pages/dashboard/DashReporting.jsx'
 import DashMore from './pages/dashboard/DashMore.jsx'
+import DashMessages from './pages/dashboard/DashMessages.jsx'
 import DashAccount from './pages/dashboard/DashAccount.jsx'
 
 export default function App() {
@@ -72,6 +73,8 @@ export default function App() {
           <Route path="reporting" element={<DashReporting />} />
           <Route path="more" element={<DashMore />} />
           <Route path="account/:section" element={<DashAccount />} />
+          <Route path="account/messages" element={<Navigate to="/dashboard/messages" replace />} />
+          <Route path="messages" element={<DashMessages />} />
         </Route>
 
         {/* Unknown paths → home */}
