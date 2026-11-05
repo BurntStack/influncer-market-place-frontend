@@ -1,4 +1,5 @@
 import { apiData, clearToken, getRefreshToken, getToken, setRefreshToken, setToken, startSession } from './apiClient.js'
+import { readOnboardingDraft } from './onboardingDraft.js'
 
 const USER_KEY = 'linkloom_user'
 const ROLES_KEY = 'linkloom_account_roles'
@@ -15,6 +16,7 @@ const withSavedRole = user => {
 
 export const isAuthed = () => Boolean(getToken() || getRefreshToken())
 export const postLoginPath = (role, requested) => {
+  if (role && readOnboardingDraft(getUser())?.role === role) return '/choose-role'
   if (role === 'creator') return '/creator/workspace'
   if (role === 'brand') {
     const path = typeof requested === 'string' ? requested : ''

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { completeSignup, getUser, postLoginPath, updateLocalUser } from '../../lib/auth.js'
 import { apiData } from '../../lib/apiClient.js'
@@ -8,6 +8,7 @@ import { getCreatorDemographics, saveCreatorDemographics } from '../../lib/creat
 import { getCreatorAvatar, saveCreatorAvatar } from '../../lib/creatorAvatar.js'
 import { uploadFile } from '../../api/uploads.js'
 import { markCreatorSubmitted } from '../../lib/creatorSubmission.js'
+import { clearOnboardingDraft, deleteDraftPhoto, loadDraftPhoto, readOnboardingDraft, saveDraftPhoto, writeOnboardingDraft } from '../../lib/onboardingDraft.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './ChooseRolePage.css'
 
@@ -21,29 +22,32 @@ export default function ChooseRolePage({ existingCreator = false }) {
   const requested = location.state?.from || new URLSearchParams(location.search).get('from')
   const from = requested?.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/choose-role') ? requested : null
   const user = getUser()
+  const [draft] = useState(() => readOnboardingDraft(user) || {})
+  const draftCleared = useRef(false)
   const savedAccounts = existingCreator ? getSocialAccounts(user) : []
   const savedDemographics = existingCreator ? getCreatorDemographics(user) : {}
-  const [role, setRole] = useState(existingCreator ? 'creator' : '')
-  const [fullName, setFullName] = useState(user?.fullName || user?.name || '')
-  const [brandName, setBrandName] = useState('')
-  const [category, setCategory] = useState(existingCreator ? user?.categories?.[0] || '' : '')
-  const [email, setEmail] = useState(user?.email || '')
-  const [displayName, setDisplayName] = useState(existingCreator ? user?.displayName || '' : '')
-  const [locationName, setLocationName] = useState(existingCreator ? user?.location || '' : '')
-  const [primaryPlatform, setPrimaryPlatform] = useState(existingCreator ? user?.primaryPlatform || '' : '')
-  const [selectedPlatforms, setSelectedPlatforms] = useState(savedAccounts.map(item => item.platform))
-  const [platformHandles, setPlatformHandles] = useState(Object.fromEntries(savedAccounts.map(item => [item.platform, item.handle])))
-  const [bio, setBio] = useState(existingCreator ? user?.bio || '' : '')
-  const [age, setAge] = useState(existingCreator ? String(savedDemographics.age ?? user?.age ?? '') : '')
-  const [gender, setGender] = useState(existingCreator ? savedDemographics.gender || user?.gender || '' : '')
-  const [genderDescription, setGenderDescription] = useState(existingCreator ? savedDemographics.genderDescription || '' : '')
+  const [role, setRole] = useState(existingCreator ? 'creator' : draft.role || '')
+  const [fullName, setFullName] = useState(draft.fullName ?? user?.fullName ?? user?.name ?? '')
+  const [brandName, setBrandName] = useState(draft.brandName ?? '')
+  const [category, setCategory] = useState(draft.category ?? (existingCreator ? user?.categories?.[0] || '' : ''))
+  const [email, setEmail] = useState(draft.email ?? user?.email ?? '')
+  const [displayName, setDisplayName] = useState(draft.displayName ?? (existingCreator ? user?.displayName || '' : ''))
+  const [locationName, setLocationName] = useState(draft.locationName ?? (existingCreator ? user?.location || '' : ''))
+  const [primaryPlatform, setPrimaryPlatform] = useState(draft.primaryPlatform ?? (existingCreator ? user?.primaryPlatform || '' : ''))
+  const [selectedPlatforms, setSelectedPlatforms] = useState(draft.selectedPlatforms ?? savedAccounts.map(item => item.platform))
+  const [platformHandles, setPlatformHandles] = useState(draft.platformHandles ?? Object.fromEntries(savedAccounts.map(item => [item.platform, item.handle])))
+  const [bio, setBio] = useState(draft.bio ?? (existingCreator ? user?.bio || '' : ''))
+  const [age, setAge] = useState(draft.age ?? (existingCreator ? String(savedDemographics.age ?? user?.age ?? '') : ''))
+  const [gender, setGender] = useState(draft.gender ?? (existingCreator ? savedDemographics.gender || user?.gender || '' : ''))
+  const [genderDescription, setGenderDescription] = useState(draft.genderDescription ?? (existingCreator ? savedDemographics.genderDescription || '' : ''))
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [photoUrl, setPhotoUrl] = useState(existingCreator ? getCreatorAvatar(user) || user?.avatarUrl || '' : '')
-  const [signupCompleted, setSignupCompleted] = useState(existingCreator)
+  const [signupCompleted, setSignupCompleted] = useState(existingCreator || Boolean(draft.signupCompleted))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [previewVerifiedEmail, setPreviewVerifiedEmail] = useState('')
+  const [previewVerifiedEmail, setPreviewVerifiedEmail] = useState(draft.previewVerifiedEmail || '')
+  const [photoLoading, setPhotoLoading] = useState(true)
   const backendEmailVerified = user?.emailVerified === true && user?.email?.toLowerCase() === email.trim().toLowerCase()
   const emailVerified = backendEmailVerified || previewVerifiedEmail === email.trim().toLowerCase() && Boolean(previewVerifiedEmail)
 
@@ -53,6 +57,22 @@ export default function ChooseRolePage({ existingCreator = false }) {
     setPreviewVerifiedEmail(address)
     setError('')
   }
+
+  useEffect(() => {
+    let active = true
+    loadDraftPhoto(user).then(file => {
+      if (active && file) setPhotoFile(current => current || file)
+    }).catch(() => {}).finally(() => { if (active) setPhotoLoading(false) })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (draftCleared.current) return
+    writeOnboardingDraft(user, { role, fullName, brandName, category, email, displayName, locationName,
+      primaryPlatform, selectedPlatforms, platformHandles, bio, age, gender, genderDescription,
+      previewVerifiedEmail, signupCompleted })
+  }, [role, fullName, brandName, category, email, displayName, locationName, primaryPlatform,
+    selectedPlatforms, platformHandles, bio, age, gender, genderDescription, previewVerifiedEmail, signupCompleted])
 
   useEffect(() => {
     if (!existingCreator) return
@@ -98,7 +118,7 @@ export default function ChooseRolePage({ existingCreator = false }) {
   }
   const complete = async event => {
     event.preventDefault()
-    if (busy) return
+    if (busy || photoLoading) return
     if (!fullName.trim() || !email.trim() || (role === 'brand'
       ? !brandName.trim() || !category
       : !displayName.trim() || !category || !locationName.trim() || !bio.trim()
@@ -119,6 +139,9 @@ export default function ChooseRolePage({ existingCreator = false }) {
           ? { role, fullName: fullName.trim(), brandName: brandName.trim() }
           : { role, fullName: fullName.trim(), displayName: displayName.trim() })
         setSignupCompleted(true)
+        writeOnboardingDraft(getUser(), { role, fullName, brandName, category, email, displayName, locationName,
+          primaryPlatform, selectedPlatforms, platformHandles, bio, age, gender, genderDescription,
+          previewVerifiedEmail, signupCompleted: true })
       }
       const completed = getUser()
       const verified = completed?.emailVerified === true && completed?.email?.toLowerCase() === email.trim().toLowerCase()
@@ -142,6 +165,9 @@ export default function ChooseRolePage({ existingCreator = false }) {
         updateLocalUser({ avatarUrl })
         markCreatorSubmitted(getUser())
       }
+      draftCleared.current = true
+      clearOnboardingDraft(getUser())
+      await deleteDraftPhoto(getUser()).catch(() => {})
       navigate(destination(role), { replace: true })
     } catch (err) { setError(err?.message || 'Could not complete your profile.') }
     finally { setBusy(false) }
@@ -162,7 +188,7 @@ export default function ChooseRolePage({ existingCreator = false }) {
           {role && <img className="role-page__intro-image" src={role === 'brand' ? '/creators/meera-iyer.webp' : '/creators/rohan-mehta.webp'} alt="" />}
           <span className="role-page__eyebrow">ONE MORE STEP</span>
           <h1>{role ? (role === 'brand' ? 'Tell us about your brand.' : 'Create your creator profile.') : 'How will you use the marketplace?'}</h1>
-          <p>{role ? 'Add the details for your workspace.' : 'Choose the workspace that fits you.'}</p>
+          <p>{role ? 'Add the details for your workspace. Your progress is saved on this device.' : 'Choose the workspace that fits you.'}</p>
           {role && <div className="role-page__intro-foot"><span>01 / VERIFY YOUR NUMBER</span><span>02 / SET UP YOUR SPACE</span></div>}
         </div>
         {!role ? <div className="role-page__choices">
@@ -193,11 +219,11 @@ export default function ChooseRolePage({ existingCreator = false }) {
             <p className="role-page__platform-note">Age and gender are saved on this device while backend profile support is being added.</p>
             <label>Bio<textarea value={bio} onChange={event => setBio(event.target.value)} placeholder="Tell brands what you create" maxLength={1000} rows={4} required /></label>
             {emailField}
-            <div className="role-page__photo"><label htmlFor="creator-photo">Profile photo</label><p>This is the photo brands will see on your profile.</p><div>{(photoPreview || photoUrl) ? <img src={photoPreview || photoUrl} alt="Your profile photo preview" /> : <span className="role-page__photo-placeholder" aria-hidden="true">+</span>}<input id="creator-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setPhotoFile(event.target.files?.[0] || null)} required={!photoUrl} /></div><small>JPEG, PNG, or WebP · up to 10 MB</small></div>
+            <div className="role-page__photo"><label htmlFor="creator-photo">Profile photo</label><p>This is the photo brands will see on your profile.</p><div>{(photoPreview || photoUrl) ? <img src={photoPreview || photoUrl} alt="Your profile photo preview" /> : <span className="role-page__photo-placeholder" aria-hidden="true">+</span>}<input id="creator-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { const file = event.target.files?.[0] || null; setPhotoFile(file); if (file) saveDraftPhoto(user, file).catch(() => setError('Your photo could not be saved on this device. Keep this page open until you submit.')) }} required={!photoUrl && !photoFile} /></div><small>JPEG, PNG, or WebP · up to 10 MB</small></div>
           </>}
           {error && <p className="role-page__error" role="alert">{error}</p>}
           {role === 'creator' && <p className="role-page__submit-note">After submission, our team will review your profile within 48 hours.</p>}
-          <div>{!signupCompleted && <button type="button" className="role-page__back" onClick={() => { setRole(''); setError('') }}>← Back</button>}<button type="submit" disabled={busy}>{busy ? 'Submitting…' : role === 'creator' ? 'Submit profile ↗' : signupCompleted ? 'Retry saving profile ↗' : 'Continue ↗'}</button></div>
+          <div>{!signupCompleted && <button type="button" className="role-page__back" onClick={() => { setRole(''); setError('') }}>← Back</button>}<button type="submit" disabled={busy || photoLoading}>{busy ? 'Submitting…' : role === 'creator' ? 'Submit profile ↗' : signupCompleted ? 'Retry saving profile ↗' : 'Continue ↗'}</button></div>
         </form>}
         {!role && error && <p className="role-page__error" role="alert">{error}</p>}
       </div>
