@@ -36,7 +36,9 @@ private delivered files using short-lived download URLs. Notifications and
 open chats refresh when WebSocket events arrive. Creator onboarding uploads a
 profile photo with the existing `avatar` upload flow. Gallery, draft-file
 upload, and creator messaging APIs have reusable client helpers; their
-workspace remains the requested Coming soon page.
+workspace shows a profile-submitted confirmation and the requested Coming soon
+message. The submitted/review state is currently device-local because no
+review-status endpoint has been supplied.
 
 Creator signup collects one or more platform IDs and a primary platform. The
 current creator PATCH contract only accepts `primaryPlatform`, so the IDs are
@@ -59,7 +61,10 @@ accept and return them.
 - Confirmation of required values for `usageRights` on campaigns and offers.
 - Email verification request/confirm endpoints and a supported way to save a
   brand email. The signup form collects email and displays its verification
-  status, but cannot mark it verified without a backend confirmation response.
+  status. The temporary Verify click is only a UI preview and does not mark
+  the account verified on the server.
+- A creator profile submission/review-status endpoint so the 48-hour review
+  confirmation reflects backend state across devices.
 
 The public homepage still uses example creator cards because the API requires
 bearer authentication for discovery. Creator profiles remain login-gated.

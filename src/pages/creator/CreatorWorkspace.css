@@ -1,2 +1,9 @@
-.creator-workspace { min-height:100dvh; display:grid; place-items:center; background:#f6f5f0; color:#20332d; text-align:center; padding:24px; }
-.creator-workspace h1 { font-size:clamp(40px,7vw,72px); font-weight:600; letter-spacing:-.055em; }
+.creator-workspace { min-height:100dvh; display:grid; place-items:center; padding:28px; background:radial-gradient(circle at 20% 15%,#dcebd5,transparent 36%),linear-gradient(145deg,#f7f8f4,#edf3eb); color:#20332d; text-align:center; }
+.creator-workspace__card { width:min(100%,640px); display:flex; flex-direction:column; align-items:center; padding:clamp(30px,6vw,64px); border:1px solid #d9e4d5; border-radius:24px; background:#fffefa; box-shadow:0 25px 75px #20332d16; }
+.creator-workspace__card .linkloom-mark { width:38px; height:38px; margin-bottom:25px; }
+.creator-workspace__eyebrow { color:#57754f; font-size:12px; font-weight:700; letter-spacing:.14em; }
+.creator-workspace__check { display:grid; place-items:center; width:62px; height:62px; margin:24px 0 4px; border-radius:50%; background:#e1f0dd; color:#315c42; font-size:32px; font-weight:700; }
+.creator-workspace h1 { margin:18px 0 12px; font-size:clamp(34px,5vw,52px); line-height:1.1; font-weight:600; letter-spacing:-.055em; }
+.creator-workspace p { max-width:440px; margin:0; color:#607066; font-size:17px; line-height:1.65; }
+.creator-workspace small { margin-top:23px; color:#6b7b70; font-size:13px; }
+.creator-workspace__coming { display:block; width:100%; margin-top:28px; padding-top:22px; border-top:1px solid #e3eadf; color:#4c6c50; font-size:14px; }

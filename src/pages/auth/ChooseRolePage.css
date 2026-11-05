@@ -55,6 +55,7 @@
 .role-page__email button { flex:none; min-height:51px; }
 .role-page__verified { flex:none; display:inline-flex; align-items:center; min-height:51px; color:#34724d; font-size:14px; font-weight:700; }
 .role-page__verification-note { margin:-10px 0 20px; color:#68766a; font-size:13px; line-height:1.5; }
+.role-page__submit-note { margin:10px 0 16px; padding:12px 14px; border-radius:10px; background:#e8f2e5; color:#3e6345; font-size:13px; line-height:1.5; }
 .role-page__photo { margin:0 0 22px; padding:18px; border:1px solid #d6e3d2; border-radius:14px; background:#f2f7f0; }
 .role-page__photo > label { display:block; margin:0; color:#304b3d; font-size:15px; font-weight:650; }
 .role-page__photo > p { margin:5px 0 14px; color:#68766a; font-size:13px; line-height:1.5; }

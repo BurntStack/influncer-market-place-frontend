@@ -19,6 +19,7 @@ try {
   const socialAccounts = await vite.ssrLoadModule('/src/lib/socialAccounts.js')
   const demographics = await vite.ssrLoadModule('/src/lib/creatorDemographics.js')
   const creatorAvatar = await vite.ssrLoadModule('/src/lib/creatorAvatar.js')
+  const creatorSubmission = await vite.ssrLoadModule('/src/lib/creatorSubmission.js')
   assert.equal(api.toPaise(11180), 1118000)
   assert.equal(api.fromPaise({ amount: 1118000, currency: 'INR' }), 11180)
 
@@ -151,6 +152,9 @@ try {
   assert.equal(calls.find(call => call.url === 'https://storage.example/upload-avatar').headers.Authorization, undefined)
   creatorAvatar.saveCreatorAvatar({ id: 'u2' }, 'https://cdn.example/avatar.png')
   assert.equal(creatorAvatar.getCreatorAvatar({ id: 'u2' }), 'https://cdn.example/avatar.png')
+  assert.equal(creatorSubmission.getCreatorSubmittedAt({ id: 'u2' }), '')
+  assert.ok(creatorSubmission.markCreatorSubmitted({ id: 'u2' }))
+  assert.ok(creatorSubmission.getCreatorSubmittedAt({ id: 'u2' }))
   console.log('API auth, money, upload, messaging and realtime request checks passed.')
 } finally {
   await vite.close()

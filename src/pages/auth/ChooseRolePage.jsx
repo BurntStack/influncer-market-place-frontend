@@ -7,6 +7,7 @@ import { getSocialAccounts, saveSocialAccounts } from '../../lib/socialAccounts.
 import { getCreatorDemographics, saveCreatorDemographics } from '../../lib/creatorDemographics.js'
 import { getCreatorAvatar, saveCreatorAvatar } from '../../lib/creatorAvatar.js'
 import { uploadFile } from '../../api/uploads.js'
+import { markCreatorSubmitted } from '../../lib/creatorSubmission.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './ChooseRolePage.css'
 
@@ -42,7 +43,16 @@ export default function ChooseRolePage({ existingCreator = false }) {
   const [signupCompleted, setSignupCompleted] = useState(existingCreator)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const emailVerified = user?.emailVerified === true && user?.email?.toLowerCase() === email.trim().toLowerCase()
+  const [previewVerifiedEmail, setPreviewVerifiedEmail] = useState('')
+  const backendEmailVerified = user?.emailVerified === true && user?.email?.toLowerCase() === email.trim().toLowerCase()
+  const emailVerified = backendEmailVerified || previewVerifiedEmail === email.trim().toLowerCase() && Boolean(previewVerifiedEmail)
+
+  const verifyEmailPreview = () => {
+    const address = email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) { setError('Enter a valid email address first.'); return }
+    setPreviewVerifiedEmail(address)
+    setError('')
+  }
 
   useEffect(() => {
     if (!existingCreator) return
@@ -130,6 +140,7 @@ export default function ChooseRolePage({ existingCreator = false }) {
         if (!avatarUrl) throw new Error('Your profile photo could not be confirmed. Please try again.')
         saveCreatorAvatar(getUser(), avatarUrl)
         updateLocalUser({ avatarUrl })
+        markCreatorSubmitted(getUser())
       }
       navigate(destination(role), { replace: true })
     } catch (err) { setError(err?.message || 'Could not complete your profile.') }
@@ -139,8 +150,8 @@ export default function ChooseRolePage({ existingCreator = false }) {
   if (user?.role && !role) return <Navigate to={destination(user.role)} replace />
 
   const emailField = <>
-    <label>Email address<div className="role-page__email"><input type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" placeholder={role === 'brand' ? 'you@brand.com' : 'you@example.com'} required />{emailVerified ? <span className="role-page__verified" aria-label="Email verified">✓ Verified</span> : <button type="button" disabled title="Email verification is awaiting a backend endpoint">Verify</button>}</div></label>
-    {!emailVerified && <p className="role-page__verification-note">Email verification needs a backend endpoint. Your address will remain unverified until you confirm a code.</p>}
+    <label>Email address<div className="role-page__email"><input type="email" value={email} onChange={event => setEmail(event.target.value)} autoComplete="email" placeholder={role === 'brand' ? 'you@brand.com' : 'you@example.com'} required />{emailVerified ? <span className="role-page__verified" aria-label={backendEmailVerified ? 'Email verified' : 'Email marked for preview'}>✓ {backendEmailVerified ? 'Verified' : 'Verified for now'}</span> : <button type="button" onClick={verifyEmailPreview}>Verify</button>}</div></label>
+    {!backendEmailVerified && <p className="role-page__verification-note">Email verification is a preview until backend confirmation is connected.</p>}
   </>
 
   return (
@@ -185,7 +196,8 @@ export default function ChooseRolePage({ existingCreator = false }) {
             <div className="role-page__photo"><label htmlFor="creator-photo">Profile photo</label><p>This is the photo brands will see on your profile.</p><div>{(photoPreview || photoUrl) ? <img src={photoPreview || photoUrl} alt="Your profile photo preview" /> : <span className="role-page__photo-placeholder" aria-hidden="true">+</span>}<input id="creator-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setPhotoFile(event.target.files?.[0] || null)} required={!photoUrl} /></div><small>JPEG, PNG, or WebP · up to 10 MB</small></div>
           </>}
           {error && <p className="role-page__error" role="alert">{error}</p>}
-          <div>{!signupCompleted && <button type="button" className="role-page__back" onClick={() => { setRole(''); setError('') }}>← Back</button>}<button type="submit" disabled={busy}>{busy ? 'Saving…' : signupCompleted ? 'Retry saving profile ↗' : 'Continue ↗'}</button></div>
+          {role === 'creator' && <p className="role-page__submit-note">After submission, our team will review your profile within 48 hours.</p>}
+          <div>{!signupCompleted && <button type="button" className="role-page__back" onClick={() => { setRole(''); setError('') }}>← Back</button>}<button type="submit" disabled={busy}>{busy ? 'Submitting…' : role === 'creator' ? 'Submit profile ↗' : signupCompleted ? 'Retry saving profile ↗' : 'Continue ↗'}</button></div>
         </form>}
         {!role && error && <p className="role-page__error" role="alert">{error}</p>}
       </div>
