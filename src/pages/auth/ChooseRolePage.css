@@ -36,6 +36,8 @@
 .role-page__form label { display:block; margin-bottom:20px; color:#304b3d; font-size:15px; font-weight:650; }
 .role-page__form input,.role-page__form select,.role-page__form textarea { display:block; width:100%; margin-top:9px; padding:14px 15px; border:1px solid #cddbc9; border-radius:10px; background:#fff; color:#20332d; font:inherit; font-weight:400; outline:none; transition:border-color .2s, box-shadow .2s; }
 .role-page__form textarea { resize:vertical; min-height:104px; }
+.role-page__two-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.role-page__two-fields label { min-width:0; }
 .role-page__form input:focus,.role-page__form select:focus,.role-page__form textarea:focus { border-color:#6e9570; box-shadow:0 0 0 4px #8aaf8726; }
 .role-page__platforms { margin:0 0 21px; padding:0; border:0; }
 .role-page__platforms legend { color:#304b3d; font-size:15px; font-weight:650; }
@@ -79,4 +81,5 @@
   .role-page__form { padding:26px 20px; }
   .role-page__email { gap:7px; }
   .role-page__email button { padding-inline:12px; }
+  .role-page__two-fields { grid-template-columns:1fr; gap:0; }
 }

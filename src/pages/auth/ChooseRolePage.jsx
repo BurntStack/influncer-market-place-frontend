@@ -4,6 +4,7 @@ import { completeSignup, getUser, postLoginPath, updateLocalUser } from '../../l
 import { apiData } from '../../lib/apiClient.js'
 import { saveMyCreatorProfile } from '../../api/creators.js'
 import { getSocialAccounts, saveSocialAccounts } from '../../lib/socialAccounts.js'
+import { getCreatorDemographics, saveCreatorDemographics } from '../../lib/creatorDemographics.js'
 import LogoMark from '../../components/LogoMark.jsx'
 import './ChooseRolePage.css'
 
@@ -18,6 +19,7 @@ export default function ChooseRolePage({ existingCreator = false }) {
   const from = requested?.startsWith('/') && !requested.startsWith('//') && !requested.startsWith('/choose-role') ? requested : null
   const user = getUser()
   const savedAccounts = existingCreator ? getSocialAccounts(user) : []
+  const savedDemographics = existingCreator ? getCreatorDemographics(user) : {}
   const [role, setRole] = useState(existingCreator ? 'creator' : '')
   const [fullName, setFullName] = useState(user?.fullName || user?.name || '')
   const [brandName, setBrandName] = useState('')
@@ -29,6 +31,9 @@ export default function ChooseRolePage({ existingCreator = false }) {
   const [selectedPlatforms, setSelectedPlatforms] = useState(savedAccounts.map(item => item.platform))
   const [platformHandles, setPlatformHandles] = useState(Object.fromEntries(savedAccounts.map(item => [item.platform, item.handle])))
   const [bio, setBio] = useState(existingCreator ? user?.bio || '' : '')
+  const [age, setAge] = useState(existingCreator ? String(savedDemographics.age ?? user?.age ?? '') : '')
+  const [gender, setGender] = useState(existingCreator ? savedDemographics.gender || user?.gender || '' : '')
+  const [genderDescription, setGenderDescription] = useState(existingCreator ? savedDemographics.genderDescription || '' : '')
   const [signupCompleted, setSignupCompleted] = useState(existingCreator)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -44,6 +49,8 @@ export default function ChooseRolePage({ existingCreator = false }) {
       setLocationName(value => value || profile.location || '')
       setPrimaryPlatform(value => value || profile.primaryPlatform || '')
       setBio(value => value || profile.bio || '')
+      setAge(value => value || String(profile.age ?? ''))
+      setGender(value => value || profile.gender || '')
     }).catch(() => {})
     return () => { active = false }
   }, [existingCreator])
@@ -72,6 +79,8 @@ export default function ChooseRolePage({ existingCreator = false }) {
     if (!fullName.trim() || !email.trim() || (role === 'brand'
       ? !brandName.trim() || !category
       : !displayName.trim() || !category || !locationName.trim() || !bio.trim()
+        || !Number.isInteger(Number(age)) || Number(age) < 1 || Number(age) > 120
+        || !gender || (gender === 'self_describe' && !genderDescription.trim())
         || !selectedPlatforms.length || !selectedPlatforms.includes(primaryPlatform)
         || selectedPlatforms.some(platform => !platformHandles[platform]?.trim()))) {
       setError('Please complete the required fields.'); return
@@ -91,9 +100,11 @@ export default function ChooseRolePage({ existingCreator = false }) {
         await apiData('/brands/me/', { method: 'PATCH', body: { industry: category } })
       } else {
         const socialAccounts = selectedPlatforms.map(platform => ({ platform, handle: platformHandles[platform].trim() }))
-        updateLocalUser({ email: email.trim(), emailVerified: verified, socialAccounts })
+        const demographics = { age: Number(age), gender, ...(gender === 'self_describe' ? { genderDescription: genderDescription.trim() } : {}) }
+        updateLocalUser({ email: email.trim(), emailVerified: verified, socialAccounts, ...demographics })
         await saveMyCreatorProfile({ displayName: displayName.trim(), bio: bio.trim(), categories: [category], location: locationName.trim(), primaryPlatform })
         saveSocialAccounts(getUser(), socialAccounts)
+        saveCreatorDemographics(getUser(), demographics)
       }
       navigate(destination(role), { replace: true })
     } catch (err) { setError(err?.message || 'Could not complete your profile.') }
@@ -141,6 +152,9 @@ export default function ChooseRolePage({ existingCreator = false }) {
             <label>Primary platform<select value={primaryPlatform} onChange={event => setPrimaryPlatform(event.target.value)} required disabled={!selectedPlatforms.length}><option value="">Select your main platform</option>{selectedPlatforms.map(item => <option key={item} value={item}>{item}</option>)}</select></label>
             <p className="role-page__platform-note">Platform IDs are saved on this device while backend profile support is being added.</p>
             <label>Location<input value={locationName} onChange={event => setLocationName(event.target.value)} placeholder="City, state" required /></label>
+            <div className="role-page__two-fields"><label>Age<input type="number" min="1" max="120" step="1" value={age} onChange={event => setAge(event.target.value)} placeholder="Your age in years" required /></label><label>Gender<select value={gender} onChange={event => setGender(event.target.value)} required><option value="">Select an option</option><option value="woman">Woman</option><option value="man">Man</option><option value="non_binary">Non-binary</option><option value="self_describe">Self-describe</option><option value="prefer_not_to_say">Prefer not to say</option></select></label></div>
+            {gender === 'self_describe' && <label>How do you describe your gender?<input value={genderDescription} onChange={event => setGenderDescription(event.target.value)} maxLength={80} required /></label>}
+            <p className="role-page__platform-note">Age and gender are saved on this device while backend profile support is being added.</p>
             <label>Bio<textarea value={bio} onChange={event => setBio(event.target.value)} placeholder="Tell brands what you create" maxLength={1000} rows={4} required /></label>
             {emailField}
           </>}

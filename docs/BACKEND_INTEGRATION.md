@@ -42,6 +42,9 @@ current creator PATCH contract only accepts `primaryPlatform`, so the IDs are
 kept on the device until the backend adds a social-accounts field or endpoint.
 Existing creator accounts without saved platform IDs are sent through the
 creator details form once on this device; they are not asked to choose a role.
+The form also asks age and gender (including a Prefer not to say option).
+These values are device-local until creator profile update and read endpoints
+accept and return them.
 
 ## Waiting on backend details
 
