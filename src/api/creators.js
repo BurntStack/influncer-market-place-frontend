@@ -70,6 +70,15 @@ export const getFilters = async () => ({
   languages: ['English', 'Hindi', 'Kannada', 'Tamil', 'Telugu', 'Malayalam'],
 })
 export const getSuggestions = async () => []
+export const saveMyCreatorProfile = profile => apiData('/creators/me/', {
+  method: 'PATCH', body: {
+    displayName: profile.displayName,
+    bio: profile.bio,
+    categories: profile.categories,
+    location: profile.location,
+    primaryPlatform: profile.primaryPlatform,
+  },
+})
 export const getCreator = async (id, options = {}) => normalizeCreator(await apiData(`/creators/${encodeURIComponent(id)}/`, options))
 export const getCreatorReviews = async (id, _params, options = {}) => listPage(await apiRequest(`/creators/${encodeURIComponent(id)}/reviews/`, options)).results
 // A creator detail may embed packages. There is no documented brand-facing

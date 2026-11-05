@@ -19,6 +19,7 @@ the full period. We have asked Rohith to confirm its refresh-token lifetime.
 | --- | --- |
 | SMS login and signup | `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/token/refresh/`, `/auth/signup/complete/`, `/auth/logout/`, `/auth/me/` |
 | Creator discovery and profile | `/creators/`, `/creators/{id}/`, `/creators/{id}/reviews/` |
+| Creator signup details | `/auth/signup/complete/`, then `PATCH /creators/me/` with display name, bio, categories, location and primary platform |
 | Brand profile | `/brands/me/` |
 | Lists and favorites | `/lists/`, `/lists/{id}/`, list creator add/remove routes |
 | Campaigns and bids | `/campaigns/`, `/campaigns/{id}/`, `/campaigns/{id}/bids/`, bid selection |

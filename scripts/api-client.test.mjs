@@ -29,6 +29,7 @@ try {
     if (String(url).endsWith('/auth/signup/complete/')) return Response.json({ success: true, data: { user: { id: verifyId, fullName: 'Test User' } }, error: null, meta: {} })
     if (String(url).endsWith('/auth/me/')) return Response.json({ success: true, data: { id: verifyId, fullName: 'Test User' }, error: null, meta: {} })
     if (String(url).endsWith('/brands/me/')) return Response.json({ success: verifyId === 'u3', data: verifyId === 'u3' ? { id: 'brand-3' } : null, error: verifyId === 'u3' ? null : { code: 'NOT_FOUND' }, meta: {} }, { status: verifyId === 'u3' ? 200 : 404 })
+    if (String(url).endsWith('/creators/me/') && options.method === 'PATCH') return Response.json({ success: true, data: { displayName: 'Creator', categories: ['Food'] }, error: null, meta: {} })
     if (String(url).endsWith('/creators/me/')) return Response.json({ success: false, data: null, error: { code: 'NOT_FOUND' }, meta: {} }, { status: 404 })
     if (String(url).endsWith('/uploads/') && options.method === 'POST') return Response.json({ success: true, data: { upload: { id: 'upload-1' }, uploadUrl: 'https://storage.example/upload-1', method: 'PUT', headers: { 'Content-Type': 'image/png' } }, error: null, meta: {} })
     if (String(url) === 'https://storage.example/upload-1') return new Response(null, { status: 200 })
@@ -110,6 +111,10 @@ try {
   values.delete('linkloom_user')
   const returningCreator = await auth.verifyOtp('challenge-1', '123456', '9123456789')
   assert.equal((await auth.resolveLoginUser(returningCreator)).role, 'creator')
+  await creators.saveMyCreatorProfile({ displayName: 'Creator', bio: 'Food videos', categories: ['Food'], location: 'Mumbai', primaryPlatform: 'Instagram', email: 'not-sent@example.com' })
+  assert.deepEqual(JSON.parse(calls.find(call => call.url.endsWith('/creators/me/') && call.method === 'PATCH').body), {
+    displayName: 'Creator', bio: 'Food videos', categories: ['Food'], location: 'Mumbai', primaryPlatform: 'Instagram',
+  })
   verifyId = 'u3'
   api.clearToken()
   values.delete('linkloom_user')

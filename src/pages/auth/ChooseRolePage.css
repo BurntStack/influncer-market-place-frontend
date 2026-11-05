@@ -34,8 +34,9 @@
 .role-page__intro-foot span:last-child { color:#fff; }
 .role-page__form { width:100%; margin:0; padding:clamp(28px, 4vw, 52px); background:linear-gradient(155deg, #fff, #f9fbf8); }
 .role-page__form label { display:block; margin-bottom:20px; color:#304b3d; font-size:15px; font-weight:650; }
-.role-page__form input,.role-page__form select { display:block; width:100%; margin-top:9px; padding:14px 15px; border:1px solid #cddbc9; border-radius:10px; background:#fff; color:#20332d; font:inherit; font-weight:400; outline:none; transition:border-color .2s, box-shadow .2s; }
-.role-page__form input:focus,.role-page__form select:focus { border-color:#6e9570; box-shadow:0 0 0 4px #8aaf8726; }
+.role-page__form input,.role-page__form select,.role-page__form textarea { display:block; width:100%; margin-top:9px; padding:14px 15px; border:1px solid #cddbc9; border-radius:10px; background:#fff; color:#20332d; font:inherit; font-weight:400; outline:none; transition:border-color .2s, box-shadow .2s; }
+.role-page__form textarea { resize:vertical; min-height:104px; }
+.role-page__form input:focus,.role-page__form select:focus,.role-page__form textarea:focus { border-color:#6e9570; box-shadow:0 0 0 4px #8aaf8726; }
 .role-page__email { display:flex; gap:10px; align-items:end; }
 .role-page__email input { flex:1; min-width:0; }
 .role-page__form button { border:0; border-radius:10px; padding:13px 19px; background:#20332d; color:#fff; font:inherit; font-weight:600; cursor:pointer; }
