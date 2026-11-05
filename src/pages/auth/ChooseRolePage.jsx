@@ -144,9 +144,10 @@ export default function ChooseRolePage({ existingCreator = false }) {
             <label>Bio<textarea value={bio} onChange={event => setBio(event.target.value)} placeholder="Tell brands what you create" maxLength={1000} rows={4} required /></label>
             {emailField}
           </>}
+          {error && <p className="role-page__error" role="alert">{error}</p>}
           <div>{!signupCompleted && <button type="button" className="role-page__back" onClick={() => { setRole(''); setError('') }}>← Back</button>}<button type="submit" disabled={busy}>{busy ? 'Saving…' : signupCompleted ? 'Retry saving profile ↗' : 'Continue ↗'}</button></div>
         </form>}
-        {error && <p className="role-page__error" role="alert">{error}</p>}
+        {!role && error && <p className="role-page__error" role="alert">{error}</p>}
       </div>
     </main>
   )

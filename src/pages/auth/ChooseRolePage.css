@@ -23,8 +23,8 @@
 .role-page__choices strong { font-size:24px; letter-spacing:-.035em; }
 .role-page__choices small { color:#667069; font-size:15px; line-height:1.5; margin-top:8px; }
 .role-page__choices b { color:#466c48; font-size:15px; margin-top:auto; padding-top:20px; }
-.role-page__content--form { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1.1fr); align-items:stretch; max-width:1040px; margin-top:clamp(44px, 7vh, 85px); border:1px solid #d7e1d4; border-radius:25px; overflow:hidden; background:#fff; box-shadow:0 25px 75px #20332d18; text-align:left; }
-.role-page__content--form .role-page__intro { position:relative; isolation:isolate; display:flex; flex-direction:column; justify-content:flex-end; min-height:590px; padding:clamp(32px, 4vw, 56px); overflow:hidden; background:#20332d; color:#fff; }
+.role-page__content--form { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows:minmax(0,1fr); align-items:stretch; width:100%; height:clamp(520px, calc(100dvh - 170px), 760px); max-width:1040px; margin-top:clamp(44px, 7vh, 85px); border:1px solid #d7e1d4; border-radius:25px; overflow:hidden; background:#fff; box-shadow:0 25px 75px #20332d18; text-align:left; }
+.role-page__content--form .role-page__intro { position:relative; isolation:isolate; display:flex; flex-direction:column; justify-content:flex-end; min-height:0; padding:clamp(32px, 4vw, 56px); overflow:hidden; background:#20332d; color:#fff; }
 .role-page__intro-image { position:absolute; inset:0; z-index:-2; width:100%; height:100%; object-fit:cover; object-position:center 28%; }
 .role-page__content--form .role-page__intro::after { content:''; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg, rgba(20,39,29,.08) 4%, rgba(24,47,35,.16) 30%, rgba(25,49,37,.88) 67%, #20332d 100%); }
 .role-page__content--form .role-page__eyebrow { color:#c8dec7; }
@@ -32,7 +32,7 @@
 .role-page__content--form .role-page__intro > p { color:#d4e2d7; max-width:350px; }
 .role-page__intro-foot { display:flex; flex-direction:column; gap:10px; margin-top:24px; padding-top:24px; border-top:1px solid #ffffff40; color:#b8d0bc; font-size:11px; font-weight:650; letter-spacing:.12em; }
 .role-page__intro-foot span:last-child { color:#fff; }
-.role-page__form { width:100%; margin:0; padding:clamp(28px, 4vw, 52px); background:linear-gradient(155deg, #fff, #f9fbf8); }
+.role-page__form { box-sizing:border-box; width:100%; height:100%; min-height:0; margin:0; padding:clamp(28px, 4vw, 52px); overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; background:linear-gradient(155deg, #fff, #f9fbf8); }
 .role-page__form label { display:block; margin-bottom:20px; color:#304b3d; font-size:15px; font-weight:650; }
 .role-page__form input,.role-page__form select,.role-page__form textarea { display:block; width:100%; margin-top:9px; padding:14px 15px; border:1px solid #cddbc9; border-radius:10px; background:#fff; color:#20332d; font:inherit; font-weight:400; outline:none; transition:border-color .2s, box-shadow .2s; }
 .role-page__form textarea { resize:vertical; min-height:104px; }
@@ -56,14 +56,15 @@
 .role-page__form > div:last-child { display:flex; justify-content:space-between; align-items:center; gap:15px; margin-top:26px; }
 .role-page__form .role-page__back { background:transparent; color:#496e4c; }
 .role-page__form .role-page__back:hover { background:#edf4eb; }
-.role-page__error { grid-column:2; margin:0 40px 28px; padding:12px; border-radius:9px; background:#f9ece6; color:#9a4535; }
+.role-page__error { max-width:500px; margin:18px auto 0; padding:12px; border-radius:9px; background:#f9ece6; color:#9a4535; }
+.role-page__form .role-page__error { margin:0 0 14px; }
 @media(max-width:780px) {
-  .role-page__content--form { grid-template-columns:1fr; max-width:560px; }
+  .role-page__content--form { grid-template-columns:1fr; grid-template-rows:auto auto; height:auto; max-width:560px; overflow:hidden; }
   .role-page__content--form .role-page__intro { min-height:360px; padding:30px; }
+  .role-page__form { height:auto; overflow:visible; scrollbar-gutter:auto; }
   .role-page__intro-image { object-position:center 24%; }
   .role-page__content--form h1 { font-size:36px; }
   .role-page__intro-foot { flex-direction:row; flex-wrap:wrap; gap:15px; margin-top:10px; padding-top:12px; }
-  .role-page__error { grid-column:1; margin:0 28px 28px; }
 }
 @media(max-width:650px) {
   .role-page__top span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
