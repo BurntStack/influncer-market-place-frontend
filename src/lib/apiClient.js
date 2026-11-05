@@ -1,15 +1,27 @@
 const BASE_URL = (import.meta.env.VITE_COLLAB_API_URL || 'https://collab-api-ewju.onrender.com/v1').replace(/\/+$/, '')
 const ACCESS_KEY = 'linkloom_access'
 const REFRESH_KEY = 'linkloom_refresh'
+const SESSION_STARTED_KEY = 'linkloom_session_started'
+const SESSION_LENGTH_MS = 15 * 24 * 60 * 60 * 1000
 
 const read = key => { try { return localStorage.getItem(key) } catch { return null } }
 const write = (key, value) => { try { if (value) localStorage.setItem(key, value); else localStorage.removeItem(key) } catch {} }
 
-export const getToken = () => read(ACCESS_KEY)
-export const getRefreshToken = () => read(REFRESH_KEY)
+const sessionExpired = () => {
+  if (!read(ACCESS_KEY) && !read(REFRESH_KEY)) return false
+  const started = Number(read(SESSION_STARTED_KEY))
+  if (!started) { write(SESSION_STARTED_KEY, String(Date.now())); return false }
+  if (Date.now() - started < SESSION_LENGTH_MS) return false
+  clearToken()
+  write('linkloom_user', null)
+  return true
+}
+export const getToken = () => sessionExpired() ? null : read(ACCESS_KEY)
+export const getRefreshToken = () => sessionExpired() ? null : read(REFRESH_KEY)
 export const setToken = token => write(ACCESS_KEY, token)
 export const setRefreshToken = token => write(REFRESH_KEY, token)
-export const clearToken = () => { setToken(null); setRefreshToken(null) }
+export const startSession = () => write(SESSION_STARTED_KEY, String(Date.now()))
+export const clearToken = () => { setToken(null); setRefreshToken(null); write(SESSION_STARTED_KEY, null) }
 
 export const toPaise = value => Math.round(Number(value || 0) * 100)
 export const fromPaise = value => Number(value?.amount ?? value ?? 0) / 100
@@ -36,17 +48,25 @@ const parseResponse = async response => {
 
 let refreshPromise = null
 const refreshAccess = async () => {
-  if (!getRefreshToken()) return null
+  const refresh = getRefreshToken()
+  if (!refresh) return null
   if (!refreshPromise) {
     refreshPromise = fetch(buildUrl('/auth/token/refresh/'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh: getRefreshToken() }),
+      body: JSON.stringify({ refresh }),
     }).then(parseResponse).then(({ data }) => {
       if (!data?.access) throw new Error('Session refresh returned no access token.')
+      if (getRefreshToken() !== refresh) return null
       setToken(data.access)
       if (data.refresh) setRefreshToken(data.refresh)
       return data.access
-    }).catch(() => { clearToken(); return null }).finally(() => { refreshPromise = null })
+    }).catch(error => {
+      if (getRefreshToken() === refresh && (error.status === 401 || error.status === 403 || /(?:INVALID|EXPIRED|REVOKED).*?(?:REFRESH|TOKEN)|(?:REFRESH|TOKEN).*?(?:INVALID|EXPIRED|REVOKED)/i.test(error.code || ''))) {
+        clearToken()
+        write('linkloom_user', null)
+      }
+      throw error
+    }).finally(() => { refreshPromise = null })
   }
   return refreshPromise
 }

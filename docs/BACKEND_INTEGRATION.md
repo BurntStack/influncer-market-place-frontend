@@ -8,6 +8,11 @@ tokens are refreshed through `/auth/token/refresh/`. Money is sent in paise
 and converted to rupees for display. Lists use `limit` (maximum 50) and
 `meta.nextCursor`.
 
+An OTP login starts a 15-day client session. Access tokens are refreshed as
+needed; a temporary refresh network error does not clear the saved session.
+The backend must keep refresh tokens valid for 15 days for this to work for
+the full period. We have asked Rohith to confirm its refresh-token lifetime.
+
 ## Connected frontend flows
 
 | Frontend | API routes |

@@ -1,4 +1,4 @@
-import { apiData, clearToken, getRefreshToken, getToken, setRefreshToken, setToken } from './apiClient.js'
+import { apiData, clearToken, getRefreshToken, getToken, setRefreshToken, setToken, startSession } from './apiClient.js'
 
 const USER_KEY = 'linkloom_user'
 
@@ -27,9 +27,13 @@ export const requestOtp = destination => apiData('/auth/otp/request/', {
   method: 'POST', auth: false, body: { channel: 'sms', destination },
 })
 
-export const verifyOtp = async (challengeId, code) => saveSession(await apiData('/auth/otp/verify/', {
-  method: 'POST', auth: false, body: { challengeId, code },
-}))
+export const verifyOtp = async (challengeId, code) => {
+  const session = await apiData('/auth/otp/verify/', {
+    method: 'POST', auth: false, body: { challengeId, code },
+  })
+  if (session?.access && session?.refresh) startSession()
+  return saveSession(session)
+}
 
 export const completeSignup = async profile => {
   const result = await apiData('/auth/signup/complete/', { method: 'POST', body: profile })

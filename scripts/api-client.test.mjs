@@ -22,7 +22,12 @@ try {
     calls.push({ url: String(url), ...options })
     if (String(url).endsWith('/auth/otp/request/')) return Response.json({ success: true, data: { challengeId: 'challenge-1' }, error: null, meta: {} })
     if (String(url).endsWith('/auth/otp/verify/')) return Response.json({ success: true, data: { access: 'old-token', refresh: 'refresh-1', user: { id: 'u1', role: 'brand' } }, error: null, meta: {} })
-    if (String(url).endsWith('/auth/token/refresh/')) return Response.json({ success: true, data: { access: 'new-token', refresh: 'refresh-2' }, error: null, meta: {} })
+    if (String(url).endsWith('/auth/token/refresh/')) {
+      const refresh = JSON.parse(options.body).refresh
+      if (refresh === 'refresh-network') throw new Error('Network offline')
+      if (refresh === 'refresh-invalid') return Response.json({ success: false, data: null, error: { code: 'INVALID_REFRESH_TOKEN' }, meta: {} }, { status: 401 })
+      return Response.json({ success: true, data: { access: 'new-token', refresh: 'refresh-2' }, error: null, meta: {} })
+    }
     if (String(url).endsWith('/orders/')) {
       if (options.headers.Authorization === 'Bearer old-token') return Response.json({ success: false, data: null, error: { code: 'TOKEN_EXPIRED', message: 'Expired' }, meta: {} }, { status: 401 })
       return Response.json({ success: true, data: [{ id: 'o1' }], error: null, meta: { nextCursor: null } })
@@ -56,6 +61,17 @@ try {
   const creatorUrl = new URL(calls.find(call => call.url.includes('/creators/?')).url)
   assert.equal(creatorUrl.searchParams.get('location'), 'Mumbai')
   assert.equal(creatorUrl.searchParams.get('minPrice'), '500000')
+  api.setToken('old-token')
+  api.setRefreshToken('refresh-network')
+  await assert.rejects(api.apiRequest('/orders/'), /Network offline/)
+  assert.equal(api.getRefreshToken(), 'refresh-network')
+  api.setRefreshToken('refresh-invalid')
+  await assert.rejects(api.apiRequest('/orders/'), error => error.code === 'INVALID_REFRESH_TOKEN')
+  assert.equal(auth.isAuthed(), false)
+  await auth.verifyOtp('challenge-1', '123456')
+  values.set('linkloom_session_started', String(Date.now() - 15 * 24 * 60 * 60 * 1000 - 1))
+  assert.equal(auth.isAuthed(), false)
+  assert.equal(auth.getUser(), null)
   console.log('API envelope, OTP, paise, bearer, refresh, campaign and creator query checks passed.')
 } finally {
   await vite.close()
