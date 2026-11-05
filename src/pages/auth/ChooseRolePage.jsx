@@ -63,6 +63,7 @@ export default function ChooseRolePage() {
       <div className="role-page__top"><Link to="/" className="role-page__logo"><LogoMark />LinkLoom</Link><span>{user?.phone || user?.destination || 'Your account'}</span></div>
       <div className={`role-page__content ${role ? 'role-page__content--form' : ''}`}>
         <div className="role-page__intro">
+          {role && <img className="role-page__intro-image" src={role === 'brand' ? '/creators/meera-iyer.webp' : '/creators/rohan-mehta.webp'} alt="" />}
           <span className="role-page__eyebrow">ONE MORE STEP</span>
           <h1>{role ? (role === 'brand' ? 'Tell us about your brand.' : 'Create your creator profile.') : 'How will you use the marketplace?'}</h1>
           <p>{role ? 'Add the details for your workspace.' : 'Choose the workspace that fits you.'}</p>
